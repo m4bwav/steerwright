@@ -505,7 +505,10 @@ def review_findings(p, g, f, wip_over, stall_weeks=STALL_WEEKS):
     flags, guess = [], "keep"
     idle = g["idle_days"]
     if idle is None or idle >= stall_weeks * 7:
-        flags.append(f"No progress for {idle if idle is not None else 'unknown'} days (kill criterion: {stall_weeks} weeks).")
+        if idle is None:
+            flags.append(f"No activity on record (no git history, log or ledger) (kill criterion: {stall_weeks} weeks).")
+        else:
+            flags.append(f"No progress for {idle} days (kill criterion: {stall_weeks} weeks).")
         guess = "table"
     if p.get("target") and f["remaining"]:
         mc = monte_carlo([w["throughput"] for w in f["weeks"]], f["remaining"], seed=1)

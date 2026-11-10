@@ -45,6 +45,7 @@ Answer from the references and name the method: "Personal Kanban says...", "Anni
 ## Rules
 
 - Read-only over sibling plugins. Kill by PID only. Pages bind 127.0.0.1.
+- STEERWRIGHT_HOME moves only steerwright's registry; askwright, chainwright and grindwright are still read from their own homes (ASKWRIGHT_HOME, CHAINWRIGHT_HOME, GRINDWRIGHT_HOME move those), so a scratch test still counts Mark's real open asks.
 - Status changes come from Mark's answers or his explicit word.
 - Item counts come from grindwright ledgers and `sw.py item`; projects without a ledger get a git and log proxy chart, which is activity, not scope.
 
