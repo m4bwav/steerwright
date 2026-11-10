@@ -13,3 +13,5 @@ Write an entry the moment a real signal happens: a user correction, the same err
 - Evidence: C-20261109-1
 - Scope: skill
 - Status: active · helpful 1 · harmful 0 · last_confirmed 2026-11-09
+
+- 2026-11-09 `detached-server-git-console`: a Windows server started with DETACHED_PROCESS opens a console for each git subprocess, which cost about 10 s on the first page load. Pass CREATE_NO_WINDOW (0x08000000) to every subprocess the server runs.
