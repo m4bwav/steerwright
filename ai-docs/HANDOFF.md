@@ -23,7 +23,7 @@ Status: in progress (session 9: 0.4.0 parking lot tab; 14 films parked in lot "V
 ## Next (in order)
 1. Next weekly review round when due (`sw.py review`); apply answers with `sw.py apply-review`.
 2. evergreen-worth A/B against a no-skill baseline (needs a runner the classifier allows).
-3. everscout beat project-management: second evidence source per book, run searches.md queries, fill the latest tier (session 9 added Open Library ids for all 12 books and recovered the 3 Reddit threads, indie-ai-scout 0e8c902).
+3. everscout beat project-management: second evidence source per book, run searches.md queries, fill the latest tier (session 9 added Open Library ids for all 12 books and recovered the 3 Reddit threads, indie-ai-scout 9b19ff5).
 4. Push wiki drafts once the wiki exists.
 5. Optional: a per-project repo traffic panel (match a project's GitHub repo to repo-traffic's CSV rows) if Mark wants more than the full dashboard page.
 6. README banner only if the repo goes public (ask first).
