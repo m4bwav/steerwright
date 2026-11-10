@@ -32,3 +32,6 @@
 - Fixed garbled HANDOFF.md (a path had been spliced into the Waiting section).
 - Ran `sw.py review --no-serve` for the four stalled projects (get-title-at-url 25 d, DotNetRandomNameGenerator 28 d, UniverseGenerator 28 d, seeded-random-utilities 26 d); sets in ~/.steerwright/reviews, waiting on Mark.
 - Wrote evals/evals.json: 3 triggers, 2 decoys (grindwright, one-off chart), 2 action cases on a scratch STEERWRIGHT_HOME. Not run yet. Registry shape note: projects is a dict keyed by slug with a `status` field.
+
+## 2026-11-09 eval run
+evergreen-test: 7/7 cases pass (one tester run each, scratch STEERWRIGHT_HOME); details in skills/steerwright/TESTS.md T-20261109-1. evergreen-worth --lite: UNPROVEN (no baseline A/B; worth expects evals/ in the skill folder). Next: baseline arm via `worth --ab` once a runner is allowed.
