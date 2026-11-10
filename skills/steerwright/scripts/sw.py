@@ -39,7 +39,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 STATUSES = ("active", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -246,11 +246,11 @@ def git_identity(path):
     """Fold worktrees and side clones into one project: origin URL, else the shared git dir."""
     try:
         url = subprocess.run(["git", "-C", str(path), "config", "--get", "remote.origin.url"],
-                             capture_output=True, text=True, timeout=10).stdout.strip()
+                             capture_output=True, text=True, timeout=10, **NO_WINDOW).stdout.strip()
         if url:
             return re.sub(r"(\.git)?/?$", "", url.lower())
         common = subprocess.run(["git", "-C", str(path), "rev-parse", "--path-format=absolute", "--git-common-dir"],
-                                capture_output=True, text=True, timeout=10).stdout.strip()
+                                capture_output=True, text=True, timeout=10, **NO_WINDOW).stdout.strip()
         return norm(Path(common).parent) if common else None
     except (OSError, subprocess.SubprocessError):
         return None
@@ -274,10 +274,13 @@ def guess_kind(text):
 
 # ---------- per-project gather ----------
 
+NO_WINDOW = {"creationflags": 0x08000000} if os.name == "nt" else {}  # CREATE_NO_WINDOW: a detached server spawning git would otherwise open a console per call
+
+
 def git_dates(path, weeks=26):
     try:
         out = subprocess.run(["git", "-C", str(path), "log", f"--since={weeks} weeks ago", "--format=%cI"],
-                             capture_output=True, text=True, timeout=20)
+                             capture_output=True, text=True, timeout=20, **NO_WINDOW)
         return [d for d in (parse_ts(x) for x in out.stdout.split()) if d]
     except (OSError, subprocess.SubprocessError):
         return []
@@ -297,6 +300,7 @@ def log_dates(path):
 
 _CACHE = {}
 _LOCK = threading.RLock()
+_KEYLOCKS = {}
 
 
 def _stamp(p):
@@ -321,6 +325,8 @@ def gather(p, fresh=False):
     """Cached gather_raw: in-process for CACHE_TTL seconds while the source fingerprint is unchanged."""
     key = json.dumps([p.get("name"), p.get("paths")])
     with _LOCK:
+        lock = _KEYLOCKS.setdefault(key, threading.Lock())
+    with lock:  # one lock per project, so a page never waits on the warm thread gathering other projects
         st = _stamp(p)
         hit = _CACHE.get(key)
         if hit and not fresh and hit[0] == st and time.time() - hit[1] < CACHE_TTL:
@@ -516,8 +522,9 @@ def review_findings(p, g, f, wip_over, stall_weeks=STALL_WEEKS):
     return flags, guess
 
 
-def next_actions(g, n=3):
-    acts = [i["title"] for i in sorted((i for i in g["items"] if i["state"] == "doing"), key=lambda i: i["created"] or datetime.min)]
+def next_actions(g, n=3, p=None):
+    acts = list((p or {}).get("next_actions") or [])
+    acts += [i["title"] for i in sorted((i for i in g["items"] if i["state"] == "doing"), key=lambda i: i["created"] or datetime.min)]
     acts += [i["title"] for i in g["items"] if i["state"] == "todo"]
     if g["asks_open"]:
         acts.insert(0, f"Answer {g['asks_open']} open askwright question(s)")
@@ -696,7 +703,7 @@ def main_page(data):
         for gr in g["grind"]:
             for s, n in gr["by_state"].items():
                 gl[s] = gl.get(s, 0) + n
-        acts = next_actions(g, 1)
+        acts = next_actions(g, 1, p)
         if p.get("status") == "active" and (running or g["asks_open"] or (g["idle_days"] is not None and g["idle_days"] <= 2)):
             strip.append(f'<a href="/p/{k}">{esc(p["name"])}</a>' + (f" ({running} chain running)" if running else "")
                          + (f" ({g['asks_open']} asks)" if g["asks_open"] else ""))
@@ -739,7 +746,22 @@ def project_page(key, p):
         ws = week_start(d)
         act[ws] = act.get(ws, 0) + 1
     awk = [(week_start(today()) - timedelta(weeks=i)) for i in range(11, -1, -1)]
-    charts += "<div class='charts'>" + svg_bars([act.get(w, 0) for w in awk], [w.isoformat() for w in awk], title="Activity per week (commits, log entries, events, answers)") + "</div>"
+    charts += "<div class='charts'>" + svg_bars([act.get(w, 0) for w in awk], [w.isoformat() for w in awk], title="Activity per week (commits, log entries, events, answers)")
+    if not g["items"]:  # no ledger: flow proxy from git commits and log entries, each counted as one finished step
+        by = {"git": {}, "log": {}}
+        for src, d in g["activity"]:
+            if src in by:
+                by[src][week_start(d)] = by[src].get(week_start(d), 0) + 1
+        cum = lambda m: [sum(m.get(x, 0) for x in awk if x <= w) for w in awk]
+        charts += svg_lines([("commits", cum(by["git"])), ("log entries", cum(by["log"]))], [w.isoformat() for w in awk],
+                            title="Cumulative commits and log entries (no ledger; proxy for done work)")
+    charts += "</div>"
+    ms = "".join(f"<tr><td>{esc(m['title'])}</td><td>{esc(m.get('date') or '-')}</td><td>{esc(m['state'])}"
+                 + (" <b style='color:var(--red)'>late</b>" if m["state"] == "open" and m.get("date") and m["date"] < today().isoformat() else "")
+                 + "</td></tr>" for m in p.get("milestones", []))
+    sev = {"low": 1, "med": 2, "high": 3}
+    risks = "".join(f"<tr><td>{esc(r['text'])}</td><td>{esc(r['likelihood'])} / {esc(r['impact'])} ({sev[r['likelihood']] * sev[r['impact']]})</td><td>{esc(r.get('plan'))}</td><td>{esc(r['state'])}</td></tr>"
+                    for r in sorted(p.get("risks", []), key=lambda r: (r["state"] != "open", -sev[r["likelihood"]] * sev[r["impact"]])))
     asks = "".join(f"<tr><td>{esc(s['title'])}</td><td>{s['open']} / {s['total']}</td><td>{f'<a href={esc(s[chr(117)+chr(114)+chr(108)])}>open</a>' if s['url'] else esc(s['path'])}</td></tr>" for s in g["ask_sets"])
     chains = "".join(f"<tr><td>{esc(c['name'])}</td><td>{c['running']} running / {c['total']}</td><td>{c['sessions']}</td><td class='mut'>{esc(c['ledger'])}</td></tr>" for c in g["chains"])
     lanes = "".join(f"<tr><td>{esc(l)}</td><td>{esc(', '.join(f'{s} {n}' for s, n in sorted(c.items())))}</td></tr>" for gr in g["grind"] for l, c in sorted(gr["by_lane"].items()))
@@ -755,8 +777,10 @@ def project_page(key, p):
             f"<div class='tile'><b>{cyc['p50'] if cyc['p50'] is not None else '-'}</b><span>cycle time p50 (d)</span></div><div class='tile'><b>{cyc['p85'] if cyc['p85'] is not None else '-'}</b><span>cycle time p85 (d)</span></div>"
             f"<div class='tile'><b>{g['asks_open']}</b><span>open asks</span></div></div>"
             f"<h2>Forecast</h2><p>{esc(fc)}</p>"
-            f"<h2>Next actions</h2><ol>{''.join(f'<li>{esc(a)}</li>' for a in next_actions(g)) or '<li class=mut>none found</li>'}</ol>"
+            f"<h2>Next actions</h2><ol>{''.join(f'<li>{esc(a)}</li>' for a in next_actions(g, 3, p)) or '<li class=mut>none found</li>'}</ol>"
             f"<h2>Charts</h2>{charts}"
+            f"<h2>Milestones</h2>{tbl(['Milestone', 'Date', 'State'], ms)}"
+            f"<h2>Risks</h2>{tbl(['Risk', 'Likelihood / impact (score)', 'Plan', 'State'], risks)}"
             f"<h2>Aging work (oldest open)</h2>{tbl(['Item', 'State', 'Age'], aging)}"
             f"<h2>askwright decisions</h2>{tbl(['Set', 'Open / total', 'Page'], asks)}"
             f"<h2>chainwright runs</h2>{tbl(['Run', 'Chains', 'Sessions', 'Ledger'], chains)}"
@@ -1088,7 +1112,7 @@ def status_row(k, p):
     return {"key": k, "name": p["name"], "status": p["status"], "health": h, "why": why,
             "last": g["last"].isoformat(timespec="minutes") if g["last"] else None, "asks_open": g["asks_open"],
             "chains_running": sum(c["running"] for c in g["chains"]), "items_done": f["done"], "items_left": f["remaining"],
-            "next": next_actions(g)}
+            "next": next_actions(g, 3, p)}
 
 
 def cmd_status(a):
@@ -1139,7 +1163,7 @@ def cmd_review(a):
                     key=lambda r: r[1])
     over = len(active) > data["wip_limit"] and k in [kk for kk, _ in active[data["wip_limit"]:]]
     flags, guess = review_findings(p, g, f, over, a.weeks or data["stall_weeks"])
-    acts = next_actions(g)
+    acts = next_actions(g, 3, p)
     setdir = build_review_set(k, p, g, f, flags, guess, acts)
     log_event(p, "review", f"guess {guess}; " + "; ".join(flags))
     p["last_review"] = today().isoformat()
@@ -1207,6 +1231,125 @@ def cmd_merge(a):
     print(json.dumps({"into": tk, "paths": tp["paths"]}, indent=1))
 
 
+def cmd_rename(a):
+    """New display name and key; the old name stays as an askwright alias so its sets still match."""
+    data = load()
+    k, p = get(data, a.name)
+    nk = slug(a.new)
+    if nk != k and nk in data["projects"]:
+        sys.exit(f"a project with key {nk!r} already exists")
+    old = p["name"]
+    aliases = p.setdefault("sources", {}).setdefault("askwright", [])
+    if old not in aliases:
+        aliases.append(old)
+    p["name"] = a.new
+    log_event(p, "renamed", f"{old} -> {a.new}")
+    data["projects"] = {(nk if kk == k else kk): v for kk, v in data["projects"].items()}
+    save(data)
+    print(json.dumps({"renamed": old, "to": a.new, "key": nk}))
+
+
+def read_review(setdir):
+    q = read_json(Path(setdir, "questions.json"), {}) or {}
+    a = (read_json(Path(setdir, "answers.json"), {}) or {}).get("answers", {})
+    ans = {qid: v for qid, v in a.items() if (v or {}).get("state") == "answered"}
+    return q, ans
+
+
+def cmd_apply_review(a):
+    """Apply answered weekly-review sets: keep (next actions), table, abandon or done. Unanswered sets are left alone."""
+    data = load()
+    rdir = home() / "reviews"
+    sets = sorted(rdir.glob("steer-*")) if rdir.exists() else []
+    if a.name:
+        k0, _ = get(data, a.name)
+        sets = [s for s in sets if s.name.startswith(f"steer-{k0}-")]
+    out = []
+    for s in sets:
+        if (s / "applied.json").exists():
+            continue
+        q, ans = read_review(s)
+        dec = ans.get("decision", {})
+        choice = dec.get("choice")
+        if not choice:
+            out.append({"set": s.name, "skipped": "decision not answered"})
+            continue
+        key = s.name[len("steer-"):-11]
+        if key not in data["projects"]:
+            out.append({"set": s.name, "skipped": f"project {key} not in registry"})
+            continue
+        p = data["projects"][key]
+        note = (dec.get("note") or "").strip()
+        txt = lambda qid: ((ans.get(qid) or {}).get("text") or "").strip()
+        res = {"set": s.name, "project": p["name"], "decision": choice}
+        if choice == "keep":
+            acts = [x.strip() for x in re.split(r"[;\n]", txt("next")) if x.strip()]
+            if acts:
+                p["next_actions"] = acts[:3]
+            log_event(p, "review: keep", "; ".join(acts) + (f" ({note})" if note else ""))
+        elif choice == "table":
+            w = txt("wake")
+            m = re.search(r"\d{4}-\d{2}-\d{2}", w)
+            rv = m.group(0) if m else (today() + timedelta(weeks=6)).isoformat()
+            p.update(status="tabled", revisit=rv, wake=(w.replace(m.group(0), "").strip(" ;,") if m else w) or "when a slot frees")
+            log_event(p, "review: tabled", f"revisit {rv}; wake: {p['wake']}" + (f" ({note})" if note else ""))
+        elif choice == "abandon":
+            p["status"] = "abandoned"
+            p["postmortem"] = {"why": txt("postmortem") or note, "keep": "", "date": today().isoformat()}
+            log_event(p, "review: abandoned", p["postmortem"]["why"])
+        elif choice == "done":
+            p["status"] = "done"
+            log_event(p, "review: done", note)
+        else:
+            out.append({"set": s.name, "skipped": f"unknown choice {choice}"})
+            continue
+        if a.dry_run:
+            res["dry_run"] = True
+        else:
+            write_json(s / "applied.json", {"ts": now_iso(), "decision": choice})
+        out.append(res)
+    if not a.dry_run:
+        save(data)
+    print(json.dumps(out, indent=1))
+
+
+def cmd_milestone(a):
+    data = load()
+    k, p = get(data, a.name)
+    ms = p.setdefault("milestones", [])
+    if a.op == "add":
+        if a.date:
+            date.fromisoformat(a.date)
+        ms.append({"id": f"m{len(ms) + 1}", "title": a.arg, "date": a.date, "state": "open"})
+    else:
+        m = next((m for m in ms if m["id"] == a.arg or m["title"] == a.arg), None)
+        if not m:
+            sys.exit(f"no milestone {a.arg!r}")
+        m["state"] = "done" if a.op == "done" else "dropped"
+        m["closed"] = today().isoformat()
+    log_event(p, f"milestone {a.op}", a.arg)
+    save(data)
+    print(json.dumps(ms, indent=1))
+
+
+def cmd_risk(a):
+    data = load()
+    k, p = get(data, a.name)
+    rs = p.setdefault("risks", [])
+    if a.op == "add":
+        rs.append({"id": f"r{len(rs) + 1}", "text": a.arg, "likelihood": a.likelihood, "impact": a.impact,
+                   "plan": a.plan or "", "state": "open", "added": today().isoformat()})
+    else:
+        r = next((r for r in rs if r["id"] == a.arg), None)
+        if not r:
+            sys.exit(f"no risk {a.arg!r}")
+        r["state"] = "closed"
+        r["closed"] = today().isoformat()
+    log_event(p, f"risk {a.op}", a.arg)
+    save(data)
+    print(json.dumps(rs, indent=1))
+
+
 def cmd_stall(a):
     data = load()
     if a.weeks is not None:
@@ -1230,6 +1373,11 @@ def main(argv=None):
     s = sub.add_parser("discover"); s.add_argument("--root", action="append"); s.add_argument("--apply", action="store_true"); s.add_argument("--since", type=int, default=30); s.add_argument("--no-group", action="store_true"); s.set_defaults(fn=cmd_discover)
     s = sub.add_parser("merge"); s.add_argument("names", nargs="+"); s.add_argument("--into", required=True); s.set_defaults(fn=cmd_merge)
     s = sub.add_parser("stall"); s.add_argument("weeks", nargs="?", type=int); s.set_defaults(fn=cmd_stall)
+    s = sub.add_parser("rename"); s.add_argument("name"); s.add_argument("new"); s.set_defaults(fn=cmd_rename)
+    s = sub.add_parser("apply-review"); s.add_argument("name", nargs="?"); s.add_argument("--dry-run", action="store_true"); s.set_defaults(fn=cmd_apply_review)
+    s = sub.add_parser("milestone"); s.add_argument("name"); s.add_argument("op", choices=("add", "done", "drop")); s.add_argument("arg"); s.add_argument("--date"); s.set_defaults(fn=cmd_milestone)
+    s = sub.add_parser("risk"); s.add_argument("name"); s.add_argument("op", choices=("add", "close")); s.add_argument("arg")
+    s.add_argument("--likelihood", choices=("low", "med", "high"), default="med"); s.add_argument("--impact", choices=("low", "med", "high"), default="med"); s.add_argument("--plan"); s.set_defaults(fn=cmd_risk)
     s = sub.add_parser("add"); s.add_argument("name"); s.add_argument("--path", action="append", required=True)
     s.add_argument("--kind", choices=KINDS, default="other"); s.add_argument("--goal"); s.add_argument("--done-when"); s.add_argument("--target"); s.set_defaults(fn=cmd_add)
     s = sub.add_parser("status"); s.add_argument("name", nargs="?"); s.add_argument("--json", action="store_true"); s.set_defaults(fn=cmd_status)
