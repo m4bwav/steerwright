@@ -3,13 +3,13 @@
 Purpose: choose which planning and review rituals a solo maker working with AI agent sessions should run, and how often.
 
 Sources checked 2026-11-09:
-- Scrum Guide 2020 (events and timeboxes): https://scrumguides.org/scrum-guide.html
-- The Kanban Guide 2020: https://kanbanguides.org/english/
+- Scrum Guide 2020 (events and timeboxes): https://scrumguides.org/scrum-guide.html (checked 2026-11-09, opened)
+- The Kanban Guide (current v2025.5, May 2025; checked 2026-11-09, opened): https://kanbanguides.org/english/
 - Atlassian Team Playbook and Agile Coach (standups, retrospectives, backlog refinement, pre-mortem): https://www.atlassian.com/team-playbook/plays , https://www.atlassian.com/agile/scrum/backlog-refinement
 - Gary Klein, "Performing a Project Premortem", Harvard Business Review, Sept 2007: https://hbr.org/2007/09/performing-a-project-premortem
-- US Army, *A Leader's Guide to After-Action Reviews* (TC 25-20, 1993): https://www.acq.osd.mil/dpap/ccap/cc/jcchb/Files/Topical/After_Action_Report/resources/tc_25-20.pdf
+- US Army, *A Leader's Guide to After-Action Reviews* (TC 25-20, 1993): https://www.acq.osd.mil/dpap/ccap/cc/jcchb/Files/Topical/After_Action_Report/resources/tc_25-20.pdf (dead link, replacement not found, unverified)
 - Google SRE book, "Postmortem Culture: Learning from Failure": https://sre.google/sre-book/postmortem-culture/
-- David Allen, GTD weekly review: https://gettingthingsdone.com/2018/08/episode-43-the-weekly-review/
+- David Allen, GTD weekly review: https://gettingthingsdone.com/ (old weekly-review episode URL is dead)
 - Basecamp, *Shape Up* (betting table, cool-down, circuit breaker): https://basecamp.com/shapeup/2.2-chapter-08 , https://basecamp.com/shapeup/2.1-chapter-07
 - John Doerr, *Measure What Matters*, and https://www.whatmatters.com/faqs/okr-meaning-definition-example
 - Robert Cooper, Stage-Gate: https://www.stage-gate.com/blog/the-stage-gate-model-an-overview/

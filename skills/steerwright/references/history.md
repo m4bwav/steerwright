@@ -2,7 +2,7 @@
 
 Purpose: a dated timeline of how project management grew, so the skill can explain where each tool came from and what a solo maker should keep from it.
 
-Sources checked 2026-11-09. Each entry names its main source. Dates are the commonly cited ones; where sources differ, the entry says so.
+Sources checked 2026-11-09. "(opened)" or "via search" = confirmed that day; "(unverified)" = not confirmed; unmarked = stable reference page that returned HTTP 200, facts not re-read. Each entry names its main source. Dates are the commonly cited ones; where sources differ, the entry says so.
 
 ## 1910s: Gantt chart
 
@@ -32,18 +32,18 @@ Source: https://www.nasa.gov/reference/systems-engineering-handbook/ and https:/
 
 Winston Royce's paper "Managing the Development of Large Software Systems" (1970) drew the cascade of phases, then said the plain version "is risky and invites failure". He argued for feedback between steps, for building a pilot version first ("do it twice"), for heavy documentation, for involving the customer and for planned testing.
 The word "waterfall" came later (Bell and Thayer, 1976). The paper is a warning against what it is famous for.
-Source: https://www.praxisframework.org/files/royce1970.pdf (copy of the original paper)
+Source: https://www.praxisframework.org/files/royce1970.pdf (copy of the original paper; blocks fetches, unverified)
 
 ## 1969 onward: PMI and the PMBOK Guide
 
 The Project Management Institute was founded in 1969 in Pennsylvania. Its PMBOK Guide editions: 1st 1996 (after a 1987 white paper), 2nd 2000, 3rd 2004, 4th 2008, 5th 2013, 6th 2017 (added an agile practice guide), 7th 2021.
-The 7th edition dropped the 49 processes for 12 principles and 8 performance domains. The 8th edition was published in November 2025 (print January 2026). It cuts the principles to 6, sets 7 performance domains (governance, scope, schedule, finance, stakeholders, resources, risk), and brings back about 40 non-prescriptive processes grouped into 5 focus areas, plus material on AI and PMOs. Check PMI's page for exact wording.
+The 7th edition dropped the 49 processes for 12 principles and 8 performance domains. The 8th edition was published in November 2025 (print dated January 2026). It cuts the principles to 6, sets 7 performance domains (governance, scope, schedule, finance, stakeholders, resources, risk), and brings back 40 non-prescriptive processes grouped into 5 focus areas, plus material on AI and PMOs. The 7th edition stays on sale until 8 July 2026. (checked 2026-11-09 via search; pmi.org blocks fetches)
 Source: https://www.pmi.org/about and https://www.pmi.org/pmbok-guide-standards/foundational/pmbok/about
 
 ## 1989 onward: PRINCE2
 
-PRINCE came from the UK government's CCTA in 1989, built on PROMPT II. PRINCE2 followed in 1996, with major revisions in 2009, 2017 (6th edition) and 2023 (7th edition, now owned by PeopleCert/AXELOS).
-It is built on stages, management by exception, a business case checked at each stage and clear roles. The 7th edition adds a "people" element, sustainability and digital and data management.
+PRINCE came from the UK government's CCTA in 1989, built on PROMPT II. PRINCE2 followed in 1996, with major revisions in 2009, 2017 (6th edition) and 2023 (PRINCE2 7, training from 4 Sept 2023, owned by PeopleCert/AXELOS; checked 2026-11-09 via search).
+It is built on stages, management by exception, a business case checked at each stage and clear roles. PRINCE2 7 adds a "people" element, renames themes to "practices", and adds digital and data, commercial and sustainability management.
 Source: https://www.axelos.com/certifications/propath/prince2-project-management
 
 ## 1990s: Lean and the Toyota Production System
@@ -56,18 +56,18 @@ Source: https://global.toyota/en/company/vision-and-philosophy/production-system
 
 Ken Schwaber and Jeff Sutherland presented Scrum at OOPSLA in 1995. The first Scrum Guide came out in 2010. The 2020 Scrum Guide is shorter, drops "development team" for one Scrum Team with no sub-teams, adds the Product Goal, and makes commitments explicit: Product Goal, Sprint Goal, Definition of Done.
 Sprints are one month or less. Events: sprint, planning, daily scrum, review, retrospective.
-Source: https://scrumguides.org/scrum-guide.html
+Source: https://scrumguides.org/scrum-guide.html (checked 2026-11-09, opened)
 
 ## 1996-1999: Extreme Programming
 
 Kent Beck ran XP on the Chrysler C3 payroll project from 1996 and wrote *Extreme Programming Explained* (1999). Practices: pair programming, test-first, continuous integration, small releases, refactoring, the planning game with user stories.
 Many of its practices outlived the name.
-Source: http://www.extremeprogramming.org/ and https://en.wikipedia.org/wiki/Extreme_programming
+Source: https://www.extremeprogramming.org/ and https://en.wikipedia.org/wiki/Extreme_programming
 
 ## 1997: Critical Chain
 
 Eliyahu Goldratt's novel *Critical Chain* (1997) applied his Theory of Constraints to projects. Cut padding from each task, pool it into a project buffer at the end, and watch how fast the buffer burns. Avoid multitasking.
-Source: https://www.tocico.org/page/TOCBodyofKnowledge and https://en.wikipedia.org/wiki/Critical_chain_project_management
+Source: https://www.tocico.org/ (old body-of-knowledge page is dead) and https://en.wikipedia.org/wiki/Critical_chain_project_management
 
 ## 2001: Agile Manifesto
 
@@ -81,7 +81,7 @@ Source: https://djaa.com/ and https://kanban.university/
 
 ## 2011 onward: scaling frameworks
 
-SAFe (Dean Leffingwell, 2011; now SAFe 6.0, 2023) adds teams of teams (Agile Release Trains), PI planning every 8-12 weeks and lean portfolio management. LeSS (Craig Larman and Bas Vodde, around 2013) keeps one product backlog and one product owner for many teams. Nexus (Schwaber, Scrum.org, 2015) links 3-9 Scrum teams with an integration team.
+SAFe (Dean Leffingwell, 2011; now SAFe 6.0, March 2023, checked 2026-11-09 via search) adds teams of teams (Agile Release Trains), PI planning every 8-12 weeks and lean portfolio management. LeSS (Craig Larman and Bas Vodde, around 2013) keeps one product backlog and one product owner for many teams. Nexus (Schwaber, Scrum.org, 2015) links 3-9 Scrum teams with an integration team.
 None of these matter for one person. They matter only as warnings about coordination cost.
 Source: https://framework.scaledagile.com/ , https://less.works/ , https://www.scrum.org/resources/online-nexus-guide
 
@@ -98,8 +98,8 @@ Source: https://woodyzuill.com/ and https://oikosofyseries.com/no-estimates-book
 
 ## 2015-2021: flow metrics
 
-Daniel Vacanti's *Actionable Agile Metrics for Predictability* (2015) built on Little's Law: track WIP, cycle time, throughput and work item age, and forecast with Monte Carlo runs over real history. The Kanban Guide (Vacanti and Coleman, 2020, revised 2025) names those four as the minimum.
-Source: https://kanbanguides.org/english/ and https://actionableagile.com/
+Daniel Vacanti's *Actionable Agile Metrics for Predictability* (2015) built on Little's Law: track WIP, cycle time, throughput and work item age, and forecast with Monte Carlo runs over real history. The Kanban Guide (Vacanti and Coleman, 2020; current v2025.5, May 2025) names those four as mandatory.
+Source: https://kanbanguides.org/english/ (checked 2026-11-09, opened) and https://actionableagile.com/
 
 ## 2019: Shape Up
 

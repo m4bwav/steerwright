@@ -4,7 +4,7 @@ Purpose: pick the right chart for a solo maker's project and compute it from a p
 
 Sources checked 2026-11-09 (from the literature; URLs are the canonical pages):
 - Daniel Vacanti, *Actionable Agile Metrics for Predictability* (2015) and *When Will It Be Done?* (2020): https://actionableagile.com/books/
-- The Kanban Guide (Vacanti and Coleman, 2020): https://kanbanguides.org/english/
+- The Kanban Guide (Vacanti and Coleman, current v2025.5, May 2025; checked 2026-11-09, opened): https://kanbanguides.org/english/
 - Scrum Guide 2020: https://scrumguides.org/scrum-guide.html
 - Atlassian Agile Coach, burndown, burnup, CFD, control chart: https://www.atlassian.com/agile/tutorials/burndown-charts , https://support.atlassian.com/jira-software-cloud/docs/view-and-understand-the-cumulative-flow-diagram/ , https://support.atlassian.com/jira-software-cloud/docs/view-and-understand-the-control-chart/
 - Donald Reinertsen, *The Principles of Product Development Flow* (2009)

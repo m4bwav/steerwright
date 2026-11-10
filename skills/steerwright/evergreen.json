@@ -1,0 +1,36 @@
+{
+  "evergreen": "1.0",
+  "name": "steerwright",
+  "kind": "skill",
+  "main": "SKILL.md",
+  "files": {
+    "research": "RESEARCH.md",
+    "changelog": "CHANGELOG.md",
+    "learnings": "LEARNINGS.md"
+  },
+  "protocol": "plugin",
+  "source": null,
+  "topic": "Project management methods, flow metrics, AI-for-PM tools, solo/creative production practice",
+  "tier": "moderate",
+  "interval_days": 30,
+  "last_checked": "2026-11-09",
+  "next_due": "2026-12-09",
+  "verify_at_use": false,
+  "volatile_claims": [
+    {"claim": "Tracker AI and agent features (Linear agents and coding sessions, Agents in Jira GA May 2026, Asana AI Teammates, Notion Custom Agents, ClickUp Brain, monday.com AI Work Platform May 2026, GitHub Agent HQ with Claude and Codex Feb 2026, Copilot for Linear GA July 2026)", "file": "references/ai-and-pm-now.md", "checked": "2026-11-09"},
+    {"claim": "Tool AI pricing: ClickUp AI add-on, Notion credits from May 2026, GitHub premium requests per agent session", "file": "references/ai-and-pm-now.md", "checked": "2026-11-09"},
+    {"claim": "Tool shutdowns: Height closed 2025-09-24; recheck the other trackers named for shutdowns or acquisitions", "file": "references/ai-and-pm-now.md", "checked": "2026-11-09"},
+    {"claim": "METR uplift study: 19% slower (early 2025); late-2025 estimates unreliable, study being redesigned", "file": "references/ai-and-pm-now.md", "checked": "2026-11-09"},
+    {"claim": "Gartner: over 40% of agentic AI projects cancelled by end of 2027; Smartsheet 2026 PPM report figures", "file": "references/ai-and-pm-now.md", "checked": "2026-11-09"},
+    {"claim": "PMBOK Guide 8th edition (Nov 2025; 6 principles, 7 domains, 5 focus areas, 40 processes); 7th sold until 2026-07-08", "file": "references/history.md", "checked": "2026-11-09"},
+    {"claim": "Current editions: Scrum Guide 2020, Kanban Guide v2025.5, PRINCE2 7 (2023), SAFe 6.0 (2023)", "file": "references/history.md", "checked": "2026-11-09"}
+  ],
+  "contradiction": null,
+  "events": [],
+  "streak": {"quiet": 0, "pinned_min": 0, "pinned_max": 0, "vau_quiet": 0},
+  "history": [
+    {"date": "2026-11-09", "m": null, "interval_after": 30, "note": "created; verification pass on reference files"}
+  ],
+  "counts": {"learnings": 0, "changes": 1, "research": 1, "tests": 0},
+  "consolidate_every": 25
+}
