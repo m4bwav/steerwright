@@ -59,4 +59,4 @@ evergreen-test: 7/7 cases pass (one tester run each, scratch STEERWRIGHT_HOME); 
 - Mark's request: filter out inactive or finished projects, add a favicon, backlinks from sibling plugin pages when steerwright is installed.
 - sw.py 0.3.2: dashboard and `status` hide tabled, done and abandoned (closed list on the page, `/?all=1`, `status --all`); a tabled project whose revisit date is reached still shows (wake). SVG favicon at /favicon.svg. Tests 13 pass. Server restarted on 47630.
 - Small ruling: "inactive" read as status tabled/abandoned, not active-but-idle; idle active projects stay visible because the stall review needs them seen.
-- Backlinks: a subagent added a "steerwright" link to askwright, chainwright and grindwright pages, shown only when ~/.steerwright/server.json exists (see their logs).
+- Backlinks: askwright 0.24.1, chainwright 0.7.1, grindwright 0.8.2 show a "steerwright" link when ~/.steerwright/server.json has a url; all released (tests pass). askwright ask.py section dividers shortened to stay under its 360 KB budget.

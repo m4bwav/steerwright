@@ -1,10 +1,10 @@
 # steerwright HANDOFF
 
-Status: in progress (session 7: reviews applied, 0.3.1 released with indefinite tabling and repo traffic page)
+Status: in progress (session 8: 0.3.2 hides tabled/done/abandoned, favicon; sibling backlinks)
 
 ## Where things are
-- Plugin folder: D:/m4bwa/Claude/Projects/Ai/steerwright, private GitHub repo m4bwav/steerwright (main), v0.3.1 released, installed as steerwright@mark-local, listed in plugin-backlog existing-plugins.md.
-- Script: skills/steerwright/scripts/sw.py 0.3.1. Design: ai-docs/plans/2026-11-09-design.md. Log: ai-docs/log.md. Tests: `python -m unittest tests/test_sw.py` (12, pass). Evals: skills/steerwright/evals/evals.json 7/7 pass (single run each, subagent proxy; skills/steerwright/TESTS.md T-20261109-1). Worth: UNPROVEN (lite only).
+- Plugin folder: D:/m4bwa/Claude/Projects/Ai/steerwright, private GitHub repo m4bwav/steerwright (main), v0.3.2 released, installed as steerwright@mark-local, listed in plugin-backlog existing-plugins.md.
+- Script: skills/steerwright/scripts/sw.py 0.3.2. Design: ai-docs/plans/2026-11-09-design.md. Log: ai-docs/log.md. Tests: `python -m unittest tests/test_sw.py` (13, pass). Evals: skills/steerwright/evals/evals.json 7/7 pass (single run each, subagent proxy; skills/steerwright/TESTS.md T-20261109-1). Worth: UNPROVEN (lite only).
 - Real registry: ~/.steerwright/projects.json (backup projects.pre-collectives.json). Active below the old 14 after session 7 (3 tabled indefinitely, krea2 abandoned), WIP 8, stall 8 weeks. Repo traffic: registry `traffic_dashboard` = repo-traffic/data/dashboard.html, served at http://127.0.0.1:47630/traffic.
 - everscout beat project-management (private): D:/m4bwa/Claude/Projects/Ai/indie-ai-scout/beats/project-management/, data ~/.everscout/data/project-management/. First scan done 2026-11-09 (3 notes); 12 books as leads, no Open Library ids yet.
 - Wiki drafts: wiki-draft/ (8 pages). Repo has no .wiki.git yet.
