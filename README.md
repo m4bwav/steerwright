@@ -13,7 +13,9 @@ It sits on top of three sibling plugins and only reads their files:
 - A registry at `~/.steerwright/projects.json`, filled by `sw.py discover` and kept by hand.
 - A local main page: every project with a health colour, last activity, open asks, running chains, grind counts and next action, a WIP warning and tabled projects whose revisit date has come.
 - A page per project: burn-up, cumulative flow, throughput, cycle time, aging work, a Monte Carlo forecast as a date range, milestones, risks and the decision log.
-- `sw.py up` and a desktop shortcut that start all the page servers; `sw.py down` stops only what it started.
+- Your repo-traffic dashboard on the same site: `sw.py traffic PATH` once, then a "repo traffic" link on every page opens it at `/traffic`.
+- Weekly reviews show the project's HANDOFF and continue prompt, and a project can be tabled indefinitely (no wake date).
+- `sw.py up` and a desktop shortcut that start all the page servers; `sw.py down` stops what it started plus steerwright's own server.
 - Reference notes on project management from Gantt to flow metrics and AI tools in 2026, used for advice.
 
 ## Quick start

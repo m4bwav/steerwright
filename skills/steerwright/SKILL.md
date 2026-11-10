@@ -19,7 +19,7 @@ Script: `scripts/sw.py` (Python 3.9+, standard library). Registry: `~/.steerwrig
 | Items, milestones, risks | `sw.py item NAME add "title"`, `sw.py milestone NAME add "Vertical slice" --date 2026-12-01`, `sw.py risk NAME add "GPU busy" --likelihood high --impact med --plan ...` |
 | Forecast | `sw.py forecast NAME` (Monte Carlo on weekly throughput: 50/85/95 % dates) |
 | Weekly review | `sw.py review NAME` writes and serves an askwright set; `sw.py apply-review [NAME]` applies answered sets |
-| Close or park by hand | `sw.py table NAME --revisit DATE --wake "..."`, `sw.py abandon NAME --why ... --keep ...`, `sw.py done NAME`, `sw.py activate NAME` |
+| Close or park by hand | `sw.py table NAME [--revisit DATE] [--wake "..."]` (no date: tabled indefinitely, never wakes on its own), `sw.py abandon NAME --why ... --keep ...`, `sw.py done NAME`, `sw.py activate NAME` |
 | Limits | `sw.py wip [N]` (Mark: 8), `sw.py stall [WEEKS]` (Mark: 8) |
 | Pages | `sw.py up` starts steerwright, askwright and the chainwright/grindwright indexes and opens the main page; `sw.py down` stops only what `up` started; `sw.py shortcut` writes a desktop `.cmd` |
 
@@ -28,7 +28,7 @@ Script: `scripts/sw.py` (Python 3.9+, standard library). Registry: `~/.steerwrig
 Manual only (Mark's ruling). For each active project, quietest first when over the WIP limit:
 1. `sw.py review NAME`. It flags kill criteria: no progress for `stall_weeks`, 85 % forecast past the target, over the WIP limit, no definition of done, open asks. Its guess is low confidence.
 2. Tell Mark the set is up. Never fill an unanswered question with the guess.
-3. Later, `sw.py apply-review`. Keep stores the next three actions; table writes revisit date and wake condition; abandon writes the post-mortem; then harvest anything reusable from an abandoned project into the right plugin or note.
+3. Later, `sw.py apply-review`. Keep stores the next three actions; table writes revisit date and wake condition (no date, or "Table indefinitely": parked with no wake date); abandon writes the post-mortem; then harvest anything reusable from an abandoned project into the right plugin or note.
 
 ## Advice on demand
 
@@ -44,6 +44,7 @@ Answer from the references and name the method: "Personal Kanban says...", "Anni
 
 ## Rules
 
+- Repo traffic: `sw.py traffic PATH` (a repo-traffic clone or its data/dashboard.html) adds a "repo traffic" link and serves the built dashboard at /traffic; rebuild it with repo-traffic, not here. Review pages carry the project's HANDOFF and continue prompt so the person can judge next actions without opening files.
 - Read-only over sibling plugins. Kill by PID only. Pages bind 127.0.0.1.
 - STEERWRIGHT_HOME moves only steerwright's registry; askwright, chainwright and grindwright are still read from their own homes (ASKWRIGHT_HOME, CHAINWRIGHT_HOME, GRINDWRIGHT_HOME move those), so a scratch test still counts Mark's real open asks.
 - Status changes come from Mark's answers or his explicit word.

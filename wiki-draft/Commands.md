@@ -30,7 +30,8 @@ All commands run as `python skills/steerwright/scripts/sw.py COMMAND`. This list
 |---|---|
 | `review NAME [--weeks N] [--no-serve]` | Writes the weekly review as an askwright set and serves it. It flags no progress for the stall period, an 85 % forecast past the target, going over the WIP limit, a missing definition of done, and open asks. |
 | `apply-review [NAME] [--dry-run]` | Applies answered review sets. Keep stores the next three actions, table stores the revisit date and wake condition, abandon writes the post-mortem. |
-| `table NAME --revisit YYYY-MM-DD --wake TEXT` | Parks a project until a date or condition. |
+| `table NAME [--revisit YYYY-MM-DD] [--wake TEXT]` | Parks a project until a date or condition. Without `--revisit` it is tabled indefinitely and never wakes on its own. |
+| `traffic [PATH] [--off]` | Points the main page at a repo-traffic dashboard (a clone folder or its `data/dashboard.html`), served at `/traffic`. |
 | `abandon NAME --why TEXT [--keep TEXT]` | Closes a project with a short post-mortem. |
 | `done NAME [--note TEXT]` | Marks a project finished. |
 | `activate NAME` | Makes a project active again. |

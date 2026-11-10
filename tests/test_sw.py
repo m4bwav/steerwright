@@ -166,6 +166,35 @@ class Commands(unittest.TestCase):
             self.assertEqual(p["next_actions"], ["a", "b", "c"])
             self.assertEqual(sw.next_actions({"items": [], "asks_open": 0, "prompts": []}, 3, p), ["a", "b", "c"])
 
+    def test_table_without_date_is_indefinite(self):
+        with Env() as d:
+            data = sw.load()
+            data["projects"]["t"] = sw.new_project("t", [str(d / "t")])
+            data["projects"]["u"] = sw.new_project("u", [str(d / "u")])
+            sw.save(data)
+            s = d / "steer" / "reviews" / "steer-t-2026-11-09"
+            sw.write_json(s / "questions.json", {"questions": []})
+            sw.write_json(s / "answers.json", {"answers": {"decision": {"choice": "table", "state": "answered"},
+                                                            "wake": {"text": "when I decide", "state": "answered"}}})
+            quiet(["apply-review"])
+            quiet(["table", "u"])
+            data = sw.load()
+            for k in ("t", "u"):
+                p = data["projects"][k]
+                self.assertEqual((p["status"], p["revisit"]), ("tabled", None))
+                self.assertEqual(sw.health(p, {"idle_days": 400}), ("tabled", "parked indefinitely"))
+            self.assertEqual(data["projects"]["t"]["wake"], "when I decide")
+
+    def test_traffic_setting_and_route(self):
+        with Env() as d:
+            f = d / "rt" / "data" / "dashboard.html"
+            write(f, "<html><body><h1>traffic</h1></body></html>")
+            quiet(["traffic", str(d / "rt")])
+            self.assertEqual(sw.traffic_file(), f)
+            self.assertIn("/traffic", sw.sibling_links())
+            quiet(["traffic", "--off"])
+            self.assertIsNone(sw.traffic_file())
+
     def test_milestone_and_risk(self):
         with Env() as d:
             data = sw.load()

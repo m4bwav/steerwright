@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261109-2 · 2026-11-09 · 0.3.1: indefinite tabling, repo traffic page, docs in reviews, down fix
+- because: Mark's review answers (blackberry-blossom note "add indefinite tabling"; technique-harvest "make a tab where you can see the docs"); Mark's request to put the repo traffic site in the dashboard
+- files: scripts/sw.py, SKILL.md, tests/test_sw.py
+- Tabling without a date now parks a project with no revisit date (new review option "Table indefinitely"); `sw.py traffic` serves repo-traffic's built dashboard at /traffic with a link on every page; review one-pagers include the HANDOFF head and continue prompt; apply-review skips superseded sets; `down` also stops a steerwright server that `up` did not start.
+
 ### C-20261109-1 · 2026-11-09 · Verified reference facts; made the skill an evergreen unit
 - because: R-20261109-1; user request
 - files: references/ai-and-pm-now.md, references/history.md, references/charts.md, references/rituals.md; new evergreen.json, RESEARCH.md, CHANGELOG.md, LEARNINGS.md, MAINTENANCE.md

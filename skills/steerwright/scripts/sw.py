@@ -12,7 +12,8 @@ grindwright state: this script never writes their files.
   sw.py forecast NAME [--trials 10000]        Monte Carlo finish range from weekly throughput (50/85/95 %)
   sw.py review NAME [--weeks N] [--no-serve]  weekly review: progress, stalls, next actions, keep/table/abandon check
                                               written as an askwright set under ~/.steerwright/reviews and served
-  sw.py table NAME --revisit YYYY-MM-DD --wake TEXT
+  sw.py table NAME [--revisit YYYY-MM-DD] [--wake TEXT]   (no --revisit: tabled indefinitely)
+  sw.py traffic [PATH|--off]   show a repo-traffic dashboard.html at /traffic
   sw.py abandon NAME --why TEXT [--keep TEXT]  closes it with a short post-mortem
   sw.py done NAME [--note TEXT] | sw.py activate NAME
   sw.py wip [N]                               show or set the WIP limit on active projects (default 8)
@@ -39,7 +40,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 STATUSES = ("active", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -429,7 +430,9 @@ def gather_raw(p):
 def health(p, g):
     if p.get("status") == "tabled":
         rv = p.get("revisit")
-        return ("wake", "revisit date reached") if rv and date.fromisoformat(rv) <= today() else ("tabled", "parked")
+        if not rv:
+            return ("tabled", "parked indefinitely")
+        return ("wake", "revisit date reached") if date.fromisoformat(rv) <= today() else ("tabled", "parked")
     if p.get("status") in ("done", "abandoned"):
         return (p["status"], p["status"])
     idle = g["idle_days"]
@@ -548,6 +551,20 @@ def ask_script():
     return next((c for c in cands if c and Path(c).exists()), None)
 
 
+def review_docs(g):
+    """The project's own documents, shown in the review so the person can judge next actions without opening files."""
+    out = []
+    if g.get("handoff"):
+        out.append({"type": "text", "text": f"HANDOFF ({g['handoff']['mtime']:%Y-%m-%d}):\n" + g["handoff"]["head"][:2500]})
+    for pr in (g.get("prompts") or [])[:1]:
+        try:
+            body = Path(pr["path"]).read_text(encoding="utf-8", errors="replace")[:2500]
+        except OSError:
+            continue
+        out.append({"type": "text", "text": f"Continue prompt {pr['path']}:\n" + body})
+    return out
+
+
 def build_review_set(key, p, g, f, flags, guess, acts):
     stamp = today().isoformat()
     sid = f"steer-{key}-{stamp}"
@@ -561,9 +578,10 @@ def build_review_set(key, p, g, f, flags, guess, acts):
              {"id": "decision", "kind": "choice", "title": "Keep, table or abandon",
               "question": f"What should happen to {p['name']} now?", "why": why,
               "one_pager": [{"type": "text", "text": "Findings:\n- " + "\n- ".join(flags or ["No kill criterion met."])},
-                            {"type": "text", "text": "Facts:\n- " + "\n- ".join(facts)}],
+                            {"type": "text", "text": "Facts:\n- " + "\n- ".join(facts)}] + review_docs(g),
               "options": [{"id": "keep", "label": "Keep going", "consequence": "Stays active; next actions below."},
                           {"id": "table", "label": "Table it", "consequence": "Parked with a revisit date and wake condition."},
+                          {"id": "shelve", "label": "Table indefinitely", "consequence": "Parked with no date; it never wakes on its own, only when you reactivate it."},
                           {"id": "abandon", "label": "Abandon it", "consequence": "Closed with a short post-mortem."},
                           {"id": "done", "label": "It is done", "consequence": "Closed as done."}],
               "guess": {"option": guess, "why": "; ".join(flags) or "moving, no criterion met", "confidence": "low"}},
@@ -574,7 +592,8 @@ def build_review_set(key, p, g, f, flags, guess, acts):
              {"id": "wake", "kind": "text", "title": "Wake condition and date",
               "question": "When should it be revisited, and what would wake it sooner?", "why": "Written to the registry; the main page surfaces it on that date.",
               "guess": {"text": f"{(today() + timedelta(weeks=6)).isoformat()}; when a slot frees", "why": "six weeks is the default parking time", "confidence": "low"},
-              "show_if": {"question": "decision", "option": ["table"]}},
+              "hint": "A date (YYYY-MM-DD) and a condition. Leave the date out to table indefinitely.",
+              "show_if": {"question": "decision", "option": ["table", "shelve"]}},
              {"id": "postmortem", "kind": "text", "title": "Post-mortem",
               "question": "Why is it ending, and what is worth keeping from it?", "why": "Recorded with the project; reusable parts get harvested.",
               "guess": {"text": "; ".join(flags) or "no longer wanted", "why": "the review findings", "confidence": "low"}, "show_if": {"question": "decision", "option": ["abandon"]}}]}
@@ -675,8 +694,18 @@ def page(title, body):
             f"<title>{esc(title)}</title><style>{CSS}</style></head><body>{body}</body></html>")
 
 
+def traffic_file():
+    """repo-traffic's built dashboard: registry `traffic_dashboard`, else STEERWRIGHT_TRAFFIC."""
+    t = (load().get("traffic_dashboard") or os.environ.get("STEERWRIGHT_TRAFFIC") or "").strip()
+    f = Path(t) if t else None
+    return f if f and f.is_file() else None
+
+
 def sibling_links():
     out = []
+    tf = traffic_file()
+    if tf:
+        out.append(f'<a href="/traffic">repo traffic</a> <span class="mut">({datetime.fromtimestamp(tf.stat().st_mtime):%Y-%m-%d})</span>')
     srv = read_json(sib_home("askwright") / "dashboard" / "server.json", {}) or {}
     if srv.get("url") and port_open(srv.get("port")):
         out.append(f'<a href="{esc(srv["url"])}">askwright</a>')
@@ -818,6 +847,14 @@ class Handler(BaseHTTPRequestHandler):
                 key = path[3:]
                 if key in data["projects"]:
                     return self.send(200, project_page(key, data["projects"][key]))
+            if path == "/traffic":
+                tf = traffic_file()
+                if tf:
+                    bar = ("<div style='font:13px system-ui;padding:6px 12px;background:#222;color:#ddd'><a style='color:#9cf' href='/'>&larr; steerwright</a>"
+                           f" &middot; repo traffic dashboard, built {datetime.fromtimestamp(tf.stat().st_mtime):%Y-%m-%d %H:%M} (rebuild: repo-traffic dashboard.py build)</div>")
+                    doc = tf.read_text(encoding="utf-8", errors="replace")
+                    doc = re.sub(r"(<body[^>]*>)", lambda m: m.group(1) + bar, doc, count=1) if "<body" in doc else bar + doc
+                    return self.send(200, doc)
             if path in ("/sib/chainwright", "/sib/grindwright"):
                 f = sib_home(path[5:]) / "index.html"
                 if f.exists():
@@ -963,6 +1000,11 @@ def cmd_down(a):
         if pid_alive(s["pid"]):
             kill_pid(s["pid"])
             stopped.append(s)
+    srv = read_json(home() / "server.json", {}) or {}  # steerwright's own server, even when up did not start it
+    pid = (ping_steer(srv["port"]) or {}).get("pid") if srv.get("port") else None
+    if pid and pid != os.getpid() and pid_alive(pid):
+        kill_pid(pid)
+        stopped.append({"name": "steerwright", "pid": pid})
     write_json(home() / "up.json", {"started": [], "ts": now_iso()})
     print(json.dumps({"stopped": stopped}))
 
@@ -1182,9 +1224,10 @@ def cmd_review(a):
 def cmd_table(a):
     data = load()
     k, p = get(data, a.name)
-    date.fromisoformat(a.revisit)
-    p.update(status="tabled", revisit=a.revisit, wake=a.wake)
-    log_event(p, "tabled", f"revisit {a.revisit}; wake: {a.wake}")
+    if a.revisit:
+        date.fromisoformat(a.revisit)
+    p.update(status="tabled", revisit=a.revisit, wake=a.wake or "when reactivated")
+    log_event(p, "tabled" + ("" if a.revisit else " indefinitely"), f"revisit {a.revisit or 'never'}; wake: {p['wake']}")
     save(data)
     print(json.dumps({"tabled": k, "revisit": a.revisit}))
 
@@ -1269,7 +1312,7 @@ def cmd_apply_review(a):
         sets = [s for s in sets if s.name.startswith(f"steer-{k0}-")]
     out = []
     for s in sets:
-        if (s / "applied.json").exists():
+        if (s / "applied.json").exists() or (s / "superseded.json").exists():
             continue
         q, ans = read_review(s)
         dec = ans.get("decision", {})
@@ -1290,12 +1333,12 @@ def cmd_apply_review(a):
             if acts:
                 p["next_actions"] = acts[:3]
             log_event(p, "review: keep", "; ".join(acts) + (f" ({note})" if note else ""))
-        elif choice == "table":
+        elif choice in ("table", "shelve"):
             w = txt("wake")
-            m = re.search(r"\d{4}-\d{2}-\d{2}", w)
-            rv = m.group(0) if m else (today() + timedelta(weeks=6)).isoformat()
-            p.update(status="tabled", revisit=rv, wake=(w.replace(m.group(0), "").strip(" ;,") if m else w) or "when a slot frees")
-            log_event(p, "review: tabled", f"revisit {rv}; wake: {p['wake']}" + (f" ({note})" if note else ""))
+            m = re.search(r"\d{4}-\d{2}-\d{2}", w) if choice == "table" else None
+            rv = m.group(0) if m else None  # no date given: tabled indefinitely, never wakes on its own
+            p.update(status="tabled", revisit=rv, wake=(w.replace(m.group(0), "").strip(" ;,") if m else w) or ("when a slot frees" if rv else "when reactivated"))
+            log_event(p, "review: tabled" + ("" if rv else " indefinitely"), f"revisit {rv or 'never'}; wake: {p['wake']}" + (f" ({note})" if note else ""))
         elif choice == "abandon":
             p["status"] = "abandoned"
             p["postmortem"] = {"why": txt("postmortem") or note, "keep": "", "date": today().isoformat()}
@@ -1361,6 +1404,21 @@ def cmd_stall(a):
     print(json.dumps({"stall_weeks": data["stall_weeks"]}))
 
 
+def cmd_traffic(a):
+    data = load()
+    if a.off:
+        data.pop("traffic_dashboard", None)
+    elif a.path:
+        f = Path(a.path).expanduser()
+        if f.is_dir():
+            f = f / "data" / "dashboard.html"
+        if not f.is_file():
+            sys.exit(f"not found: {f} (build it first: repo-traffic dashboard.py build)")
+        data["traffic_dashboard"] = str(f)
+    save(data)
+    print(json.dumps({"traffic_dashboard": data.get("traffic_dashboard")}))
+
+
 def cmd_wip(a):
     data = load()
     if a.n is not None:
@@ -1387,7 +1445,8 @@ def main(argv=None):
     s = sub.add_parser("item"); s.add_argument("name"); s.add_argument("op", choices=("add", "done", "drop")); s.add_argument("arg"); s.set_defaults(fn=cmd_item)
     s = sub.add_parser("forecast"); s.add_argument("name"); s.add_argument("--trials", type=int, default=10000); s.add_argument("--weeks", type=int, default=12); s.set_defaults(fn=cmd_forecast)
     s = sub.add_parser("review"); s.add_argument("name"); s.add_argument("--weeks", type=int); s.add_argument("--no-serve", action="store_true"); s.set_defaults(fn=cmd_review)
-    s = sub.add_parser("table"); s.add_argument("name"); s.add_argument("--revisit", required=True); s.add_argument("--wake", required=True); s.set_defaults(fn=cmd_table)
+    s = sub.add_parser("traffic"); s.add_argument("path", nargs="?"); s.add_argument("--off", action="store_true"); s.set_defaults(fn=cmd_traffic)
+    s = sub.add_parser("table"); s.add_argument("name"); s.add_argument("--revisit", help="YYYY-MM-DD; omit to table indefinitely"); s.add_argument("--wake", default=""); s.set_defaults(fn=cmd_table)
     s = sub.add_parser("abandon"); s.add_argument("name"); s.add_argument("--why", required=True); s.add_argument("--keep"); s.set_defaults(fn=cmd_abandon)
     s = sub.add_parser("done"); s.add_argument("name"); s.add_argument("--note"); s.set_defaults(fn=cmd_done)
     s = sub.add_parser("activate"); s.add_argument("name"); s.set_defaults(fn=cmd_activate)
