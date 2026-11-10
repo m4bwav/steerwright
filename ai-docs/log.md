@@ -41,3 +41,10 @@ evergreen-test: 7/7 cases pass (one tester run each, scratch STEERWRIGHT_HOME); 
 - Mark ruling (via coordinator): two collectives, "AI plugins" and "Open source software", each one active project. Applied with merge + rename; the four OSS reviews are marked superseded. Active 21 -> 14.
 - Small ruling: evergreen-upkeep, package-backlog (jsr-publish) and package-modernization were placed in the collectives; Ai/Music (musicwright music projects) and blackberry-blossom were left standalone.
 - Wrap-up: little to harvest; the eval oddities are on the Next list. The headless `claude -p` eval runner is refused by the auto-mode classifier, so evergreen-tester subagents stand in.
+
+## 2026-11-09 (session 6)
+- Served six review sets (sammy-homework, krea2, technique-harvest, blackberry-blossom, voicewright-lab-ask-pilot, book-learnings-round-5) in ~/.steerwright/reviews; each on its own askwright port (59164-59363). Unanswered.
+- sw.py: review text says "No activity on record" instead of "unknown days"; evals moved to skills/steerwright/evals/ so evergreen-worth finds them; SKILL.md notes that STEERWRIGHT_HOME does not move sibling homes (small ruling: keep siblings independent rather than redirect them). Tests 10 pass.
+- Small ruling: added labs/DotNetJsonPrettyPrinter, CachingServiceWithAOPSupport, IsImageUrlDotNet, TrailerClipperLib to "Open source software" (packages with wikis). Active still 14.
+- Subagent ran the first everscout scan of project-management: 39 items, 16 sources, 3 notes; 12 books added to literature.md as leads (indie-ai-scout 6d2dd3e). Three Reddit threads failed in fetchwright.
+- Worth A/B skipped: headless runner still refused. Wrap-up: own account only, nothing passed the gate beyond this log.
