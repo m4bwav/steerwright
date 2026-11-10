@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261109-3 · 2026-11-09 · 0.3.2: hide inactive and finished projects, favicon
+- because: Mark asked that steerwright filter out inactive or finished projects and have a favicon
+- files: scripts/sw.py, tests/test_sw.py
+The dashboard and `sw.py status` show only live projects (active, or tabled with its revisit date reached); tabled, done and abandoned fold into a closed list on the page (`/?all=1` or `status --all` shows everything). Pages carry an SVG ship's-wheel favicon served at /favicon.svg.
+
 ### C-20261109-2 · 2026-11-09 · 0.3.1: indefinite tabling, repo traffic page, docs in reviews, down fix
 - because: Mark's review answers (blackberry-blossom note "add indefinite tabling"; technique-harvest "make a tab where you can see the docs"); Mark's request to put the repo traffic site in the dashboard
 - files: scripts/sw.py, SKILL.md, tests/test_sw.py

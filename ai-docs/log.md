@@ -54,3 +54,9 @@ evergreen-test: 7/7 cases pass (one tester run each, scratch STEERWRIGHT_HOME); 
 - Technique harvest's "next actions" answer was feedback, not actions: Mark could not see the project's docs in askwright. Small ruling: next action set to its continue prompt (run now and then). Fix in steerwright: review one-pagers now carry the HANDOFF head and continue prompt. The general askwright request (a tab that shows a project's docs) went to plugin-backlog as owed askwright work.
 - sw.py 0.3.1: indefinite tabling (`table` without `--revisit`; review option "Table indefinitely"; a table answer with no date is indefinite instead of the old 6-week default); `sw.py traffic PATH` serves repo-traffic's built data/dashboard.html at /traffic with a back bar, linked from every page (Mark's request this session); apply-review skips superseded sets; `down` also stops steerwright's own server when `up` did not start it (the old server kept running old code). Tests 12 pass. Real registry points at D:/m4bwa/Claude/Projects/Ai/repo-traffic.
 - The traffic page shows the last build; it does not run a capture. Rebuild with the repo-traffic skill.
+
+## 2026-11-09 (session 8)
+- Mark's request: filter out inactive or finished projects, add a favicon, backlinks from sibling plugin pages when steerwright is installed.
+- sw.py 0.3.2: dashboard and `status` hide tabled, done and abandoned (closed list on the page, `/?all=1`, `status --all`); a tabled project whose revisit date is reached still shows (wake). SVG favicon at /favicon.svg. Tests 13 pass. Server restarted on 47630.
+- Small ruling: "inactive" read as status tabled/abandoned, not active-but-idle; idle active projects stay visible because the stall review needs them seen.
+- Backlinks: a subagent added a "steerwright" link to askwright, chainwright and grindwright pages, shown only when ~/.steerwright/server.json exists (see their logs).

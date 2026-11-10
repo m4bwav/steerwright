@@ -7,7 +7,7 @@ grindwright state: this script never writes their files.
   sw.py discover [--root DIR ...] [--apply]   propose registry entries from sibling state (askwright projects,
                                               chain ledgers, grind states, ai-docs/HANDOFF.md); --apply adds them
   sw.py add NAME --path DIR [--kind K] [--goal G] [--done-when D] [--target YYYY-MM-DD]
-  sw.py status [NAME] [--json]                portfolio or one project: health, activity, open asks, flow
+  sw.py status [NAME] [--json] [--all]        portfolio or one project: health, activity, open asks, flow
   sw.py item NAME add TITLE | done ID | drop ID   steerwright's own remaining-items list (for projects with no grind ledger)
   sw.py forecast NAME [--trials 10000]        Monte Carlo finish range from weekly throughput (50/85/95 %)
   sw.py review NAME [--weeks N] [--no-serve]  weekly review: progress, stalls, next actions, keep/table/abandon check
@@ -40,7 +40,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.3.1"
+VERSION = "0.3.2"
 STATUSES = ("active", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -689,8 +689,15 @@ def esc(x):
     return html.escape(str(x if x is not None else ""))
 
 
+FAVICON = ("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='30' fill='#2b6cb0'/>"
+           "<circle cx='32' cy='32' r='18' fill='none' stroke='#fff' stroke-width='5'/>"
+           "<path d='M32 4v14M32 46v14M4 32h14M46 32h14' stroke='#fff' stroke-width='5' stroke-linecap='round'/>"
+           "<circle cx='32' cy='32' r='5' fill='#fff'/></svg>")  # a ship's wheel
+
+
 def page(title, body):
     return (f"<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
+            f"<link rel='icon' type='image/svg+xml' href='/favicon.svg'>"
             f"<title>{esc(title)}</title><style>{CSS}</style></head><body>{body}</body></html>")
 
 
@@ -717,8 +724,11 @@ def sibling_links():
     return " · ".join(out)
 
 
-def main_page(data):
-    rows, strip, warns = [], [], []
+LIVE = ("wake", "red", "amber", "green")  # health bands shown by default; tabled, done and abandoned fold away
+
+
+def main_page(data, show_all=False):
+    rows, strip, warns, hidden = [], [], [], []
     projects = list(data["projects"].items())
     gs = {k: gather(p) for k, p in projects}
     active = [k for k, p in projects if p.get("status") == "active"]
@@ -735,6 +745,9 @@ def main_page(data):
         for gr in g["grind"]:
             for s, n in gr["by_state"].items():
                 gl[s] = gl.get(s, 0) + n
+        if h not in LIVE and not show_all:
+            hidden.append(f"<a href='/p/{k}'>{esc(p['name'])}</a> <span class='mut'>({esc(h)})</span>")
+            continue
         acts = next_actions(g, 1, p)
         if p.get("status") == "active" and (running or g["asks_open"] or (g["idle_days"] is not None and g["idle_days"] <= 2)):
             strip.append(f'<a href="/p/{k}">{esc(p["name"])}</a>' + (f" ({running} chain running)" if running else "")
@@ -754,6 +767,8 @@ def main_page(data):
             + f"<h2>Current work</h2><div class='strip'>{' · '.join(strip) or '<span class=mut>nothing moving in the last 2 days</span>'}</div>"
             + "<h2>Projects</h2><table><tr><th>Project</th><th>Status</th><th>Last activity</th><th>Open asks</th><th>Chains running</th><th>Grind items</th><th>Next action</th></tr>"
             + "".join(rows) + "</table>"
+            + ((f"<details><summary>{len(hidden)} tabled, done or abandoned (hidden) · <a href='/?all=1'>show all</a></summary>"
+                f"<p>{' · '.join(hidden)}</p></details>") if hidden else ("<p><a href='/'>hide tabled, done and abandoned</a></p>" if show_all else ""))
             + "<p class='mut'>Read-only view. Change state with sw.py (review, table, abandon, done).</p>")
     return page("steerwright", body)
 
@@ -840,7 +855,10 @@ class Handler(BaseHTTPRequestHandler):
         try:
             data = load()
             if path == "/":
-                return self.send(200, main_page(data))
+                q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                return self.send(200, main_page(data, show_all=q.get("all", ["0"])[0] not in ("0", "")))
+            if path in ("/favicon.svg", "/favicon.ico"):
+                return self.send(200, FAVICON, "image/svg+xml")
             if path == "/ping":
                 return self.send(200, json.dumps({"steerwright": VERSION, "pid": os.getpid()}), "application/json")
             if path.startswith("/p/"):
@@ -1163,6 +1181,8 @@ def status_row(k, p):
 def cmd_status(a):
     data = load()
     rows = [status_row(*get(data, a.name))] if a.name else [status_row(k, p) for k, p in data["projects"].items()]
+    if not a.name and not a.all:  # tabled, done and abandoned stay out unless asked for (or due to wake)
+        rows = [r for r in rows if r["health"] in LIVE]
     active = sum(1 for p in data["projects"].values() if p["status"] == "active")
     if a.json:
         print(json.dumps({"wip_limit": data["wip_limit"], "active": active, "projects": rows}, indent=1))
@@ -1441,7 +1461,7 @@ def main(argv=None):
     s.add_argument("--likelihood", choices=("low", "med", "high"), default="med"); s.add_argument("--impact", choices=("low", "med", "high"), default="med"); s.add_argument("--plan"); s.set_defaults(fn=cmd_risk)
     s = sub.add_parser("add"); s.add_argument("name"); s.add_argument("--path", action="append", required=True)
     s.add_argument("--kind", choices=KINDS, default="other"); s.add_argument("--goal"); s.add_argument("--done-when"); s.add_argument("--target"); s.set_defaults(fn=cmd_add)
-    s = sub.add_parser("status"); s.add_argument("name", nargs="?"); s.add_argument("--json", action="store_true"); s.set_defaults(fn=cmd_status)
+    s = sub.add_parser("status"); s.add_argument("name", nargs="?"); s.add_argument("--json", action="store_true"); s.add_argument("--all", action="store_true", help="include tabled, done and abandoned"); s.set_defaults(fn=cmd_status)
     s = sub.add_parser("item"); s.add_argument("name"); s.add_argument("op", choices=("add", "done", "drop")); s.add_argument("arg"); s.set_defaults(fn=cmd_item)
     s = sub.add_parser("forecast"); s.add_argument("name"); s.add_argument("--trials", type=int, default=10000); s.add_argument("--weeks", type=int, default=12); s.set_defaults(fn=cmd_forecast)
     s = sub.add_parser("review"); s.add_argument("name"); s.add_argument("--weeks", type=int); s.add_argument("--no-serve", action="store_true"); s.set_defaults(fn=cmd_review)

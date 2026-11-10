@@ -185,6 +185,20 @@ class Commands(unittest.TestCase):
                 self.assertEqual(sw.health(p, {"idle_days": 400}), ("tabled", "parked indefinitely"))
             self.assertEqual(data["projects"]["t"]["wake"], "when I decide")
 
+    def test_main_page_hides_inactive_and_has_favicon(self):
+        with Env() as d:
+            data = sw.load()
+            data["projects"]["live"] = sw.new_project("Live one", [str(d / "a")])
+            data["projects"]["gone"] = sw.new_project("Gone one", [str(d / "b")])
+            data["projects"]["gone"]["status"] = "done"
+            sw.save(data)
+            html_ = sw.main_page(sw.load())
+            self.assertIn("favicon.svg", html_)
+            self.assertIn("Live one", html_)
+            self.assertIn("1 tabled, done or abandoned (hidden)", html_)
+            self.assertNotIn("<td>done<", html_)
+            self.assertIn("<td>done<", sw.main_page(sw.load(), show_all=True))
+
     def test_traffic_setting_and_route(self):
         with Env() as d:
             f = d / "rt" / "data" / "dashboard.html"
