@@ -1,25 +1,23 @@
 # steerwright HANDOFF
 
-Status: in progress (Next items 1, 2, 4 and most of 5 done in session 2)
+Status: in progress (session 3: Next 1-4 done, 5 partly)
 
 ## Where things are
 - Plugin folder: D:/m4bwa/Claude/Projects/Ai/steerwright, local git repo (main), no GitHub remote yet.
-- Script: skills/steerwright/scripts/sw.py 0.2.0. Design: ai-docs/plans/2026-11-09-design.md. Log: ai-docs/log.md. Tests: tests/test_sw.py (`python -m unittest tests/test_sw.py`).
+- Script: skills/steerwright/scripts/sw.py 0.3.0. SKILL.md hub, plugin.json, README, SECURITY, LICENSE, evergreen unit files in place. Design: ai-docs/plans/2026-11-09-design.md. Log: ai-docs/log.md. Tests: tests/test_sw.py (`python -m unittest tests/test_sw.py`).
 - Real registry: ~/.steerwright/projects.json (22 projects, 21 active, WIP 8, stall 8 weeks). Desktop shortcut D:/m4bwa/OneDrive/Desktop/steerwright.cmd.
-- References written (citations unverified): skills/steerwright/references/*.md.
+- References verified 2026-11-09 (about 16 lines still marked unverified).
 
 ## Waiting on Mark
-- Nothing blocking. Setup answers (ask/steerwright-setup) are all in and applied.
+- Creating the private GitHub repo: `gh repo create m4bwav/steerwright --private --source . --push` was refused by the auto-mode classifier (2026-11-09). Mark runs it or allows it; private was his answer on ask/steerwright-setup.
+- Flag: "tiny-colony-2" was renamed "voicewright-lab ask pilot" (small ruling).
 
 ## Next (in order)
-1. Rename command (`sw.py rename`), then fix "Tiny Colony" (SpaceDeckBuilder2) and "tiny-colony-2" (voicewright-lab/ask_pilot); diagnose the ~12 s first load of the detached server.
-2. `sw.py apply-review` reading review answers; milestones and risks in the registry; flow charts from git/log for projects without a ledger.
-3. More tests: discover folding with fake sibling homes, review set build.
-4. Verification pass on references (open every URL, fix dates and facts); make the skill an evergreen unit (evergreen.json, RESEARCH.md search plan, volatile claims).
-5. SKILL.md hub (full), evals (evergreen-test), worth check, README with banner, SECURITY.md, LICENSE, wiki.
-6. everscout beat project-management (private).
-7. Repo: private m4bwav/steerwright, PRs merged after checks, tag and release, add to mark-local, update installed plugin. Add to plugin-backlog existing-plugins.md.
-8. First real weekly reviews: 21 active vs WIP 8; put the table/keep calls on askwright review pages (manual trigger only, per Mark).
+1. Evals: evals/evals.json (triggers, decoys, action cases) and run them with evergreen-test; worth check (evergreen-worth).
+2. everscout beat project-management (private): read the everscout-beat skill first.
+3. Repo: after the repo exists, push, add to mark-local marketplace, install, add to plugin-backlog existing-plugins.md; tag v0.3.0 and release. Wiki after that.
+4. First real weekly reviews: 21 active vs WIP 8; run `sw.py review` for the quietest (stalled: get-title-at-url, DotNetRandomNameGenerator, UniverseGenerator, seeded-random-utilities) and tell Mark; `sw.py apply-review` next session.
+5. README banner when/if the repo goes public.
 
 ## Stop and ask (askwright) before
 Making the repo public, writing into another plugin's state, adding a scheduled task, publishing to any registry.

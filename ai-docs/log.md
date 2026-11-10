@@ -17,3 +17,12 @@
 - Ran `up` (steerwright on 127.0.0.1:47630, askwright already up, chainwright and grindwright indexes built), `down`, `shortcut` (D:\m4bwa\OneDrive\Desktop\steerwright.cmd). All worked.
 - tests/test_sw.py: 5 unittest cases (flow, monte_carlo, health bands, grouping, registry defaults + merge), all pass.
 - git init (main), first commit; no GitHub repo yet.
+
+## 2026-11-09 (session 3)
+- sw.py 0.3.0: `rename` (old name kept as askwright alias), `apply-review` (keep stores next actions, table parses date + wake, abandon writes post-mortem, done; marks sets applied.json; unanswered sets left alone), `milestone`, `risk`, project-page sections for both, cumulative commits/log-entries proxy chart for projects without a ledger.
+- Slow first load fixed: git subprocesses now use CREATE_NO_WINDOW (a DETACHED_PROCESS server opened a console per git call) and gather locks per project instead of one global lock. Detached first load 2.6 s (was ~12 s), then 0.04 s.
+- Real registry: renamed "Tiny Colony" -> SpaceDeckBuilder2 and "tiny-colony-2" -> "voicewright-lab ask pilot" (small ruling on the second name; flag for Mark).
+- Tests: 10 (added rename, review+apply, keep next actions, milestone/risk page, discover with fake sibling homes). All pass.
+- Subagent verified references: 76 URLs checked; corrected METR, Asana, Notion, Kanban Guide (v2025.5), SAFe 6.0 (Mar 2023), PMBOK 8 (40 processes; 7th on sale to 2026-07-08), PRINCE2 7; ~16 lines marked (unverified). Wrote evergreen.json (7 volatile claims), RESEARCH.md, CHANGELOG.md, LEARNINGS.md, MAINTENANCE.md.
+- Added SKILL.md hub, .claude-plugin/plugin.json 0.3.0, README (no banner yet; private), SECURITY.md, LICENSE (MIT), AGENTS.md, CLAUDE.md.
+- `gh repo create m4bwav/steerwright --private` was refused by the auto-mode permission classifier; needs Mark to allow it or run it.
