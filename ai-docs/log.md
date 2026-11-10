@@ -75,3 +75,6 @@ evergreen-test: 7/7 cases pass (one tester run each, scratch STEERWRIGHT_HOME); 
 - Not due: no stalled project. Wiki still missing. Worth A/B still blocked.
 - Small ruling: musicwright merged into the "AI plugins" collective (Mark's rule covers every *wright plugin); its paths include Ai/Music. Backup ~/.steerwright/projects.pre-musicwright.json. Active now 9 against WIP 8 (still over by one; shown on the dashboard, Mark's call).
 - Wrap-up: nothing beyond this log passed the gate.
+
+## 2026-11-10 (session 12)
+- Idle: no stalled project (all 9 active within 2 d), wiki .wiki.git still missing, worth A/B still blocked. Wrap-up: nothing beyond this log passed the gate.
