@@ -70,3 +70,8 @@ evergreen-test: 7/7 cases pass (one tester run each, scratch STEERWRIGHT_HOME); 
 ## 2026-11-09 (session 10)
 - Not due: no stalled project. Wiki still missing. Worth A/B still blocked.
 - Beat evidence pass (subagent, resumed after a restart): second source per book in literature.md, all 8 searches.md queries run (3 web notes; two from search summaries with estimated dates), latest tier empty and latest_checked 2026-11-09 (indie-ai-scout 07610ee). Next item 3 done. Wrap-up: nothing beyond this log passed the gate.
+
+## 2026-11-09 (session 11)
+- Not due: no stalled project. Wiki still missing. Worth A/B still blocked.
+- Small ruling: musicwright merged into the "AI plugins" collective (Mark's rule covers every *wright plugin); its paths include Ai/Music. Backup ~/.steerwright/projects.pre-musicwright.json. Active now 9 against WIP 8 (still over by one; shown on the dashboard, Mark's call).
+- Wrap-up: nothing beyond this log passed the gate.
