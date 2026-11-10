@@ -3,6 +3,7 @@
   "name": "steerwright",
   "kind": "skill",
   "main": "SKILL.md",
+  "scout": {"beat": "project-management", "status": "linked", "date": "2026-11-09"},
   "files": {
     "research": "RESEARCH.md",
     "changelog": "CHANGELOG.md",

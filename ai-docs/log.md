@@ -35,3 +35,9 @@
 
 ## 2026-11-09 eval run
 evergreen-test: 7/7 cases pass (one tester run each, scratch STEERWRIGHT_HOME); details in skills/steerwright/TESTS.md T-20261109-1. evergreen-worth --lite: UNPROVEN (no baseline A/B; worth expects evals/ in the skill folder). Next: baseline arm via `worth --ab` once a runner is allowed.
+
+## 2026-11-09 (session 5)
+- Review sets still unanswered. Subagents: evals 7/7 pass (54527a0, worth lite UNPROVEN), wiki drafted in wiki-draft/ (fbff2c3; .wiki.git missing), everscout beat project-management created (evergreen.json linked).
+- Mark ruling (via coordinator): two collectives, "AI plugins" and "Open source software", each one active project. Applied with merge + rename; the four OSS reviews are marked superseded. Active 21 -> 14.
+- Small ruling: evergreen-upkeep, package-backlog (jsr-publish) and package-modernization were placed in the collectives; Ai/Music (musicwright music projects) and blackberry-blossom were left standalone.
+- Wrap-up: little to harvest; the eval oddities are on the Next list. The headless `claude -p` eval runner is refused by the auto-mode classifier, so evergreen-tester subagents stand in.
