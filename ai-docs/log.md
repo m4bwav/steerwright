@@ -27,3 +27,8 @@
 - Added SKILL.md hub, .claude-plugin/plugin.json 0.3.0, README (no banner yet; private), SECURITY.md, LICENSE (MIT), AGENTS.md, CLAUDE.md.
 - `gh repo create m4bwav/steerwright --private` was refused by the auto-mode permission classifier; needs Mark to allow it or run it.
 - Mark switched to manual mode; created private m4bwav/steerwright and pushed, added to mark-local marketplace, installed, tagged and released v0.3.0.
+
+## 2026-11-09 (session 4)
+- Fixed garbled HANDOFF.md (a path had been spliced into the Waiting section).
+- Ran `sw.py review --no-serve` for the four stalled projects (get-title-at-url 25 d, DotNetRandomNameGenerator 28 d, UniverseGenerator 28 d, seeded-random-utilities 26 d); sets in ~/.steerwright/reviews, waiting on Mark.
+- Wrote evals/evals.json: 3 triggers, 2 decoys (grindwright, one-off chart), 2 action cases on a scratch STEERWRIGHT_HOME. Not run yet. Registry shape note: projects is a dict keyed by slug with a `status` field.

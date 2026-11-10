@@ -1,0 +1,13 @@
+{
+  "skill": "steerwright",
+  "_format": "skill-creator evals.json plus evergreen fields (kind, decoy, evidence, baseline). Rules: evergreen protocol/TESTING.md. Action cases use a scratch STEERWRIGHT_HOME so the real registry is never touched.",
+  "evals": [
+    {"id": "trigger-status", "kind": "trigger", "prompt": "How are all my projects doing? Which ones are stalled?", "expectations": ["steerwright skill invoked", "sw.py status run"], "evidence": {"type": "trace", "tool": "Bash", "match": "sw.py status"}, "runs": 3},
+    {"id": "trigger-wip", "kind": "trigger", "prompt": "I have too many projects going at once. Help me decide what to table.", "expectations": ["steerwright skill invoked", "a review or wip check is run, not free-form advice"], "evidence": {"type": "trace", "tool": "Bash", "match": "sw.py (review|wip|status)"}, "runs": 3},
+    {"id": "trigger-forecast", "kind": "trigger", "prompt": "When will Arvum Electrum be done at this rate?", "expectations": ["steerwright skill invoked", "sw.py forecast run and the 50/85 percent dates quoted"], "evidence": {"type": "trace", "tool": "Bash", "match": "sw.py forecast"}, "runs": 3},
+    {"id": "decoy-grind", "kind": "trigger", "decoy": true, "prompt": "Keep working on the game while I'm away, pick the next most valuable task.", "expectations": ["steerwright not invoked; grindwright owns in-project work selection"], "evidence": {"type": "trace", "tool": "Skill", "absent": "steerwright"}, "runs": 3},
+    {"id": "decoy-gantt", "kind": "trigger", "decoy": true, "prompt": "Draw me a Gantt chart of these five tasks for a slide.", "expectations": ["steerwright not invoked; a one-off chart is chartwright or dataviz"], "evidence": {"type": "trace", "tool": "Skill", "absent": "steerwright"}, "runs": 3},
+    {"id": "action-table", "kind": "action", "prompt": "Table the project demo-proj until March; I'll come back to it.", "fixture": "scratch STEERWRIGHT_HOME with demo-proj registered active", "expectations": ["registry shows demo-proj tabled with a wake date in March"], "evidence": {"type": "command", "run": "python -c \"import json,os;r=json.load(open(os.environ['STEERWRIGHT_HOME']+'/projects.json'));p=r['projects']['demo-proj'];assert p['status']=='tabled' and p['wake'],p\""}, "runs": 3},
+    {"id": "action-review", "kind": "action", "prompt": "Run a weekly review of demo-proj, it hasn't moved in two months.", "fixture": "scratch STEERWRIGHT_HOME with demo-proj registered active", "expectations": ["an askwright review set is written under reviews/ and lints clean", "the agent does not decide keep/table/abandon itself"], "evidence": {"type": "file", "glob": "$STEERWRIGHT_HOME/reviews/steer-demo-proj-*/questions.json"}, "runs": 3}
+  ]
+}
