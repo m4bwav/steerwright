@@ -26,3 +26,4 @@
 - Subagent verified references: 76 URLs checked; corrected METR, Asana, Notion, Kanban Guide (v2025.5), SAFe 6.0 (Mar 2023), PMBOK 8 (40 processes; 7th on sale to 2026-07-08), PRINCE2 7; ~16 lines marked (unverified). Wrote evergreen.json (7 volatile claims), RESEARCH.md, CHANGELOG.md, LEARNINGS.md, MAINTENANCE.md.
 - Added SKILL.md hub, .claude-plugin/plugin.json 0.3.0, README (no banner yet; private), SECURITY.md, LICENSE (MIT), AGENTS.md, CLAUDE.md.
 - `gh repo create m4bwav/steerwright --private` was refused by the auto-mode permission classifier; needs Mark to allow it or run it.
+- Mark switched to manual mode; created private m4bwav/steerwright and pushed, added to mark-local marketplace, installed, tagged and released v0.3.0.
