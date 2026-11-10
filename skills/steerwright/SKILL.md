@@ -20,6 +20,7 @@ Script: `scripts/sw.py` (Python 3.9+, standard library). Registry: `~/.steerwrig
 | Forecast | `sw.py forecast NAME` (Monte Carlo on weekly throughput: 50/85/95 % dates) |
 | Weekly review | `sw.py review NAME` writes and serves an askwright set; `sw.py apply-review [NAME]` applies answered sets |
 | Close or park by hand | `sw.py table NAME [--revisit DATE] [--wake "..."]` (no date: tabled indefinitely, never wakes on its own), `sw.py abandon NAME --why ... --keep ...`, `sw.py done NAME`, `sw.py activate NAME` |
+| Parking lot | `sw.py park NAME --lot LOT [--note "where it stands"]`: work at a good-enough cut that may be picked up again (finished films and the like). Shown on the Parking lot tab (`/parking`, one sub-tab per lot), outside the WIP count and the stall reviews; `sw.py activate NAME` picks one back up. |
 | Limits | `sw.py wip [N]` (Mark: 8), `sw.py stall [WEEKS]` (Mark: 8) |
 | Pages | `sw.py up` starts steerwright, askwright and the chainwright/grindwright indexes and opens the main page; `sw.py down` stops only what `up` started; `sw.py shortcut` writes a desktop `.cmd` |
 

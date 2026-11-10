@@ -13,6 +13,7 @@ grindwright state: this script never writes their files.
   sw.py review NAME [--weeks N] [--no-serve]  weekly review: progress, stalls, next actions, keep/table/abandon check
                                               written as an askwright set under ~/.steerwright/reviews and served
   sw.py table NAME [--revisit YYYY-MM-DD] [--wake TEXT]   (no --revisit: tabled indefinitely)
+  sw.py park NAME --lot LOT [--note TEXT]   parking lot: finished-enough work you may pick up again
   sw.py traffic [PATH|--off]   show a repo-traffic dashboard.html at /traffic
   sw.py abandon NAME --why TEXT [--keep TEXT]  closes it with a short post-mortem
   sw.py done NAME [--note TEXT] | sw.py activate NAME
@@ -40,8 +41,8 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.3.2"
-STATUSES = ("active", "tabled", "abandoned", "done")
+VERSION = "0.4.0"
+STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
 DEFAULT_WIP = 8
@@ -433,6 +434,8 @@ def health(p, g):
         if not rv:
             return ("tabled", "parked indefinitely")
         return ("wake", "revisit date reached") if date.fromisoformat(rv) <= today() else ("tabled", "parked")
+    if p.get("status") == "parked":
+        return ("parked", f"parking lot: {p.get('lot') or 'other'}")
     if p.get("status") in ("done", "abandoned"):
         return (p["status"], p["status"])
     idle = g["idle_days"]
@@ -673,7 +676,7 @@ a{color:var(--blue)}h1{font-size:20px;margin:4px 0 12px}h2{font-size:15px;margin
 table{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 td,th{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:12px;color:var(--mut);font-weight:600}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-.green{background:var(--green)}.amber{background:var(--amber)}.red{background:var(--red)}.tabled,.done,.abandoned{background:var(--grey)}.wake{background:var(--blue)}
+.green{background:var(--green)}.amber{background:var(--amber)}.red{background:var(--red)}.tabled,.done,.abandoned,.parked{background:var(--grey)}.wake{background:var(--blue)}
 .tiles{display:flex;gap:10px;flex-wrap:wrap}.tile{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:120px}
 .tile b{display:block;font-size:22px}.tile span{color:var(--mut);font-size:12px}
 .strip{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
@@ -681,6 +684,7 @@ td,th{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertic
 .chart{width:100%;max-width:560px;background:var(--card);border:1px solid var(--line);border-radius:8px;margin:4px 8px 8px 0}
 .chart .grid{stroke:var(--line)}.chart .ax{fill:var(--mut);font-size:10px}.chart .ct{fill:var(--fg);font-size:11px;font-weight:600}
 .charts{display:flex;flex-wrap:wrap}pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);padding:10px;border-radius:8px;font-size:12px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 10px;border-bottom:1px solid var(--line)}.tabs a{padding:6px 12px;text-decoration:none;color:var(--mut);border-radius:6px 6px 0 0}.tabs a.on{background:var(--card);color:var(--fg);border:1px solid var(--line);border-bottom-color:var(--card);margin-bottom:-1px;font-weight:600}
 .mut{color:var(--mut)}@media (max-width:640px){td:nth-child(n+5),th:nth-child(n+5){display:none}}
 """
 
@@ -727,6 +731,32 @@ def sibling_links():
 LIVE = ("wake", "red", "amber", "green")  # health bands shown by default; tabled, done and abandoned fold away
 
 
+def tabs(on, data):
+    n = sum(1 for p in data["projects"].values() if p.get("status") == "parked")
+    return (f"<nav class='tabs'><a href='/' class='{'on' if on == 'projects' else ''}'>Projects</a>"
+            f"<a href='/parking' class='{'on' if on == 'parking' else ''}'>Parking lot ({n})</a></nav>")
+
+
+def parking_page(data, lot=None):
+    parked = [(k, p) for k, p in data["projects"].items() if p.get("status") == "parked"]
+    lots = sorted({p.get("lot") or "Other" for _, p in parked})
+    lot = lot if lot in lots else (lots[0] if lots else None)
+    sub = "".join(f"<a href='/parking?lot={urllib.parse.quote(l)}' class='{'on' if l == lot else ''}'>{esc(l)} ({sum(1 for _, p in parked if (p.get('lot') or 'Other') == l)})</a>" for l in lots)
+    rows = []
+    for k, p in sorted((kp for kp in parked if (kp[1].get("lot") or "Other") == lot), key=lambda kp: kp[1]["name"].lower()):
+        g = gather(p)
+        last = f"{g['last']:%Y-%m-%d}" if g["last"] else "-"
+        rows.append(f"<tr><td><a href='/p/{k}'>{esc(p['name'])}</a><div class='mut'>{esc(p.get('kind'))}</div></td><td>{last}</td>"
+                    f"<td>{esc(p.get('note') or p.get('goal') or '')}</td><td class='mut'>{esc('; '.join(p.get('paths', [])))}</td>"
+                    f"<td><code>sw.py activate {esc(k)}</code></td></tr>")
+    body = (f"<div class='top'><h1>steerwright</h1><span>{today()}</span><span>{sibling_links()}</span></div>" + tabs("parking", data)
+            + "<p class='mut'>Work that reached a good-enough cut. Not counted against the WIP limit. Pick one to improve and activate it.</p>"
+            + (f"<nav class='tabs'>{sub}</nav>" if lots else "")
+            + ("<table><tr><th>Project</th><th>Last activity</th><th>Where it stands</th><th>Folder</th><th>Continue</th></tr>" + "".join(rows) + "</table>"
+               if rows else "<p class='mut'>Nothing parked. Park with sw.py park NAME --lot LOT.</p>"))
+    return page("steerwright parking lot", body)
+
+
 def main_page(data, show_all=False):
     rows, strip, warns, hidden = [], [], [], []
     projects = list(data["projects"].items())
@@ -745,6 +775,8 @@ def main_page(data, show_all=False):
         for gr in g["grind"]:
             for s, n in gr["by_state"].items():
                 gl[s] = gl.get(s, 0) + n
+        if h == "parked":
+            continue
         if h not in LIVE and not show_all:
             hidden.append(f"<a href='/p/{k}'>{esc(p['name'])}</a> <span class='mut'>({esc(h)})</span>")
             continue
@@ -761,6 +793,7 @@ def main_page(data, show_all=False):
                      f"<td>{esc(', '.join(f'{s} {n}' for s, n in sorted(gl.items())))}</td><td>{esc(acts[0] if acts else '')}</td></tr>")
     body = (f"<div class='top'><h1>steerwright</h1><span>{today()}</span><span>{sibling_links()}</span></div>"
             + "".join(f"<div class='warn'>{esc(w)}</div>" for w in warns)
+            + tabs("projects", data)
             + f"<div class='tiles'>" + "".join(f"<div class='tile'><b>{n}</b><span>{s}</span></div>" for s, n in
                 ((s, sum(1 for _, p in projects if p.get('status') == s)) for s in STATUSES))
             + f"<div class='tile'><b>{data['wip_limit']}</b><span>WIP limit</span></div></div>"
@@ -857,6 +890,9 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/":
                 q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
                 return self.send(200, main_page(data, show_all=q.get("all", ["0"])[0] not in ("0", "")))
+            if path == "/parking":
+                q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                return self.send(200, parking_page(data, q.get("lot", [None])[0]))
             if path in ("/favicon.svg", "/favicon.ico"):
                 return self.send(200, FAVICON, "image/svg+xml")
             if path == "/ping":
@@ -1252,6 +1288,17 @@ def cmd_table(a):
     print(json.dumps({"tabled": k, "revisit": a.revisit}))
 
 
+def cmd_park(a):
+    data = load()
+    k, p = get(data, a.name)
+    p.update(status="parked", lot=a.lot, revisit=None)
+    if a.note:
+        p["note"] = a.note
+    log_event(p, "parked", a.lot)
+    save(data)
+    print(json.dumps({"parked": k, "lot": a.lot}))
+
+
 def cmd_abandon(a):
     data = load()
     k, p = get(data, a.name)
@@ -1467,6 +1514,7 @@ def main(argv=None):
     s = sub.add_parser("review"); s.add_argument("name"); s.add_argument("--weeks", type=int); s.add_argument("--no-serve", action="store_true"); s.set_defaults(fn=cmd_review)
     s = sub.add_parser("traffic"); s.add_argument("path", nargs="?"); s.add_argument("--off", action="store_true"); s.set_defaults(fn=cmd_traffic)
     s = sub.add_parser("table"); s.add_argument("name"); s.add_argument("--revisit", help="YYYY-MM-DD; omit to table indefinitely"); s.add_argument("--wake", default=""); s.set_defaults(fn=cmd_table)
+    s = sub.add_parser("park"); s.add_argument("name"); s.add_argument("--lot", required=True); s.add_argument("--note"); s.set_defaults(fn=cmd_park)
     s = sub.add_parser("abandon"); s.add_argument("name"); s.add_argument("--why", required=True); s.add_argument("--keep"); s.set_defaults(fn=cmd_abandon)
     s = sub.add_parser("done"); s.add_argument("name"); s.add_argument("--note"); s.set_defaults(fn=cmd_done)
     s = sub.add_parser("activate"); s.add_argument("name"); s.set_defaults(fn=cmd_activate)

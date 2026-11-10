@@ -126,6 +126,19 @@ class Commands(unittest.TestCase):
             self.assertIn("Tiny Colony", p["sources"]["askwright"])
             self.assertEqual(p["history"][-1]["event"], "renamed")
 
+    def test_park_lot_page(self):
+        with Env() as d:
+            data = sw.load()
+            data["projects"]["crash"] = sw.new_project("Crash Site", [str(d / "c")], "film")
+            sw.save(data)
+            quiet(["park", "Crash Site", "--lot", "Video projects", "--note", "best cut h"])
+            data = sw.load()
+            self.assertEqual(data["projects"]["crash"]["status"], "parked")
+            self.assertNotIn("Crash Site", sw.main_page(data))
+            html = sw.parking_page(data)
+            self.assertIn("Video projects (1)", html)
+            self.assertIn("best cut h", html)
+
     def test_review_then_apply(self):
         with Env() as d:
             proj = d / "proj"

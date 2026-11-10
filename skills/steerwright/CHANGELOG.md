@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261109-4 · 2026-11-09 · 0.4.0: parking lot tab
+- because: Mark asked for a project parking lot tab with a video projects sub-tab (the Gray King film and his other major films) so he can choose one to keep improving
+- files: scripts/sw.py, SKILL.md, tests/test_sw.py
+New status `parked` with a `lot` and `note`; `sw.py park`; Projects / Parking lot tabs; `/parking?lot=` sub-tabs. Parked projects stay off the main table, the WIP count and stall reviews.
+
 ### C-20261109-3 · 2026-11-09 · 0.3.2: hide inactive and finished projects, favicon
 - because: Mark asked that steerwright filter out inactive or finished projects and have a favicon
 - files: scripts/sw.py, tests/test_sw.py
