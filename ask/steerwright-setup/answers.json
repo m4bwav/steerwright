@@ -1,0 +1,90 @@
+{
+  "askwright": 1,
+  "rev": 8,
+  "answers": {
+    "unit": {
+      "choice": "group",
+      "note": "",
+      "attachments": [],
+      "timecodes": [],
+      "guess_revealed": false,
+      "guess_revealed_before_pick": false,
+      "q_rev": 1,
+      "rev": 1,
+      "updated": "2026-11-09T20:23:23-06:00",
+      "state": "answered"
+    },
+    "wip": {
+      "choice": "8",
+      "note": "",
+      "attachments": [],
+      "timecodes": [],
+      "guess_revealed": false,
+      "guess_revealed_before_pick": false,
+      "q_rev": 1,
+      "rev": 2,
+      "updated": "2026-11-09T20:23:35-06:00",
+      "state": "answered"
+    },
+    "stall": {
+      "choice": "8",
+      "note": "",
+      "attachments": [],
+      "timecodes": [],
+      "guess_revealed": false,
+      "guess_revealed_before_pick": false,
+      "q_rev": 1,
+      "rev": 4,
+      "updated": "2026-11-09T20:24:04-06:00",
+      "state": "answered"
+    },
+    "home": {
+      "choice": "dot",
+      "note": "",
+      "attachments": [],
+      "timecodes": [],
+      "guess_revealed": false,
+      "guess_revealed_before_pick": false,
+      "q_rev": 1,
+      "rev": 5,
+      "updated": "2026-11-09T20:24:13-06:00",
+      "state": "answered"
+    },
+    "name": {
+      "choice": "keep",
+      "note": "",
+      "attachments": [],
+      "timecodes": [],
+      "guess_revealed": false,
+      "guess_revealed_before_pick": false,
+      "q_rev": 1,
+      "rev": 6,
+      "updated": "2026-11-09T20:24:19-06:00",
+      "state": "answered"
+    },
+    "repo": {
+      "choice": "private",
+      "note": "",
+      "attachments": [],
+      "timecodes": [],
+      "guess_revealed": false,
+      "guess_revealed_before_pick": false,
+      "q_rev": 1,
+      "rev": 7,
+      "updated": "2026-11-09T20:24:22-06:00",
+      "state": "answered"
+    },
+    "schedule": {
+      "choice": "manual",
+      "note": "",
+      "attachments": [],
+      "timecodes": [],
+      "guess_revealed": false,
+      "guess_revealed_before_pick": false,
+      "q_rev": 1,
+      "rev": 8,
+      "updated": "2026-11-09T20:24:35-06:00",
+      "state": "answered"
+    }
+  }
+}

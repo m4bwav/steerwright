@@ -1,0 +1,106 @@
+# Project management glossary
+
+Purpose: plain one- or two-line definitions of project management terms, so the skill and the maker use words the same way.
+
+Checked 2026-11-09. Main sources: Scrum Guide 2020 (https://scrumguides.org/scrum-guide.html), Kanban Guide (https://kanbanguides.org/english/), Shape Up (https://basecamp.com/shapeup), PMI PMBOK Guide (https://www.pmi.org/pmbok-guide-standards/foundational/pmbok), PRINCE2 (https://www.axelos.com/certifications/propath/prince2-project-management), Reinertsen *The Principles of Product Development Flow* (2009) for cost of delay and WSJF (https://framework.scaledagile.com/wsjf/).
+
+- **Acceptance criteria**: The conditions a piece of work must meet to count as accepted. Written per item, unlike the definition of done.
+- **Actual cost (AC)**: What has really been spent (money or hours) on the work done so far.
+- **Alpha**: An early build where the main features exist but are rough. Used in games and software.
+- **Appetite**: How much time you are willing to spend on something, set before you design it. Shape Up's fixed time, variable scope.
+- **Assumption**: Something taken as true for planning without proof. Log it so you can test it later.
+- **Backlog**: An ordered list of work not yet started. Long backlogs go stale; prune them.
+- **Baseline**: The approved version of scope, schedule or budget that progress is measured against.
+- **Beta**: A build that is feature complete but still being tested and fixed.
+- **Betting table**: Shape Up's meeting where shaped pitches are chosen for the next cycle. Unchosen pitches are not saved in a backlog.
+- **Blocker**: Anything that stops a task from moving until it is removed.
+- **Buffer**: Time or money held back for overruns. Critical Chain pools it at the end of the project.
+- **Burn-down chart**: Work remaining plotted against time. It should fall to zero by the end.
+- **Burn-up chart**: Work completed plotted against time, with a separate scope line. Shows scope growth, which burn-down hides.
+- **Business case**: Why the project is worth doing: costs, benefits, risks. PRINCE2 rechecks it at every stage.
+- **Change control**: A rule for how changes to agreed scope, time or cost are proposed, judged and accepted.
+- **Charter**: A short document that starts a project: goal, scope, who decides, rough budget.
+- **Circuit breaker**: Shape Up's rule that a project not done by the end of its cycle is stopped by default, not extended.
+- **Cool-down**: The gap after a Shape Up cycle (two weeks) for fixes, cleanup and exploring.
+- **Cost of delay**: How much value is lost per unit of time a thing is late. Used to rank work.
+- **Cost performance index (CPI)**: EV divided by AC. Below 1 means over budget.
+- **Crashing**: Adding resources to critical-path tasks to finish sooner, at higher cost.
+- **Critical path**: The longest chain of dependent tasks. Its length sets the earliest finish date.
+- **Cycle time**: Time from when work on an item starts to when it finishes.
+- **Daily scrum**: Scrum's 15-minute daily check on progress toward the sprint goal.
+- **Deadline**: A date by which something must be done. Separate hard ones (a festival) from soft ones (a wish).
+- **Definition of done**: The shared quality bar every finished item must meet (tested, documented, exported).
+- **Definition of ready**: A checklist an item must pass before work starts on it. Not part of the Scrum Guide.
+- **Deliverable**: A thing the project hands over: a build, a cut, a file, a document.
+- **Dependency**: One task cannot start or finish until another does.
+- **Earned value (EV)**: The budgeted value of the work actually done so far.
+- **Earned value management (EVM)**: Comparing PV, EV and AC to see schedule and cost health in numbers.
+- **Epic**: A large body of work split into smaller stories.
+- **Estimate**: A guess at size, time or cost. Give ranges, not single numbers.
+- **Fast tracking**: Doing tasks in parallel that were planned in sequence. Saves time, adds risk.
+- **Feature complete**: All planned features exist, even if buggy. Usually the start of beta.
+- **Float (slack)**: How long a task can slip without delaying the project. Critical-path tasks have zero.
+- **Flow**: Work moving steadily from start to done without waiting.
+- **Gantt chart**: Bars on a timeline showing when each task runs.
+- **Gate**: See stage gate.
+- **Gold master**: The final build or master approved for release or manufacture. Films call it the final master.
+- **Hill chart**: Shape Up's chart where each scope climbs the hill (figuring it out) and descends (doing known work).
+- **Iceboxed**: Kept but not planned. Same idea as parked.
+- **Increment**: Scrum's usable step toward the product goal. Each must meet the definition of done.
+- **Issue**: A problem happening now. A risk that came true becomes an issue.
+- **Issue log**: The list of open issues, who owns each, and what is being done.
+- **Iteration**: A fixed-length cycle of work. A sprint is one kind.
+- **Kanban board**: Columns for each stage of work with cards moving across.
+- **Kill criteria**: Conditions, set up front, under which you stop the project.
+- **Lead time**: Time from when an item is requested to when it is delivered. Includes waiting before start.
+- **Little's Law**: Average cycle time equals average WIP divided by average throughput. More WIP means slower finishing.
+- **Management by exception**: Agree tolerances; only escalate when one will be broken. From PRINCE2.
+- **Milestone**: A point in time marking a finished stage. It has no duration.
+- **Monte Carlo forecast**: Run thousands of simulated futures from past throughput to get dates with odds, such as "85% done by 3 March".
+- **MoSCoW**: Sort scope into Must, Should, Could and Won't (this time).
+- **MVP (minimum viable product)**: The smallest version that tests whether people want it. Not the smallest version you would ship proudly.
+- **Objective and key results (OKR)**: One qualitative aim plus two to five measurable results that show it was met.
+- **Parked (tabled)**: Set aside on purpose with a note on why and when to look again. Not abandoned.
+- **Planned value (PV)**: The budgeted value of work scheduled to be done by now.
+- **Portfolio**: All your projects seen together, so you choose what to fund, pause or stop.
+- **Post-mortem**: A review after a project ends: what went well, what did not, what to change.
+- **Pre-mortem**: Before starting, imagine the project failed and list why. Then guard against those causes.
+- **Pre-production**: The planning and prototyping phase before full production. Scripts, boards, prototypes, tests.
+- **Product goal**: Scrum's long-term objective for the product.
+- **Production**: The phase where the main content is made at volume.
+- **Programme**: A group of related projects managed together for a shared benefit.
+- **Prototype**: A quick, rough build to answer a question. Usually thrown away.
+- **Pull system**: Start new work only when there is capacity, rather than pushing work in.
+- **RACI**: A table of who is Responsible, Accountable, Consulted and Informed for each task.
+- **RAID log**: One list of Risks, Assumptions, Issues and Dependencies.
+- **Refinement**: Ongoing work to split, clarify and size backlog items before they are picked up.
+- **Release**: Putting a version in users' hands.
+- **Retrospective**: A regular look back at how you work, ending in one or two changes to try.
+- **Risk**: Something that may happen and would affect the project. Has likelihood and impact.
+- **Risk register**: The list of risks, their likelihood, impact, owner and response.
+- **Roadmap**: A high-level view of what is planned over the coming months. Not a promise.
+- **Rolling wave planning**: Plan the near term in detail and the far term roughly, refining as you go.
+- **Schedule performance index (SPI)**: EV divided by PV. Below 1 means behind schedule.
+- **Scope**: Everything the project will deliver, and by implication what it will not.
+- **Scope creep**: Scope growing without matching changes to time or budget.
+- **Shaping**: Shape Up's work of turning a rough idea into a bounded pitch before it is bet on.
+- **Spike**: A short timeboxed investigation to answer a question before estimating or building.
+- **Sprint**: Scrum's fixed cycle of one month or less with a sprint goal.
+- **Sprint goal**: The single objective for a sprint.
+- **Stage gate**: A decision point between phases: go, kill, hold or recycle.
+- **Stakeholder**: Anyone affected by or able to affect the project.
+- **Story (user story)**: A small piece of value written from the user's view: "As a ..., I want ..., so that ...".
+- **Story points**: A relative size unit for stories. Not hours; useful only within one team.
+- **Sunk cost**: Money or time already spent that cannot be recovered. It should not drive the decision to continue.
+- **Swimlane**: A horizontal row on a board for one type of work or one project.
+- **Throughput**: Number of items finished per unit of time.
+- **Timebox**: A fixed amount of time for an activity. When it ends, you stop and decide.
+- **Tolerance**: The allowed deviation on time, cost or scope before escalating.
+- **Triage**: Quickly sorting incoming items by urgency and value.
+- **Velocity**: Story points completed per sprint. A planning aid, not a performance score.
+- **Vertical slice**: A thin piece that works end to end, through all layers. In games, one polished level that proves the final quality.
+- **WBS (work breakdown structure)**: The whole job broken into smaller deliverables until each is manageable.
+- **WIP (work in progress)**: Items started but not finished.
+- **WIP limit**: A cap on how many items can be in progress at once. Finish before you start.
+- **Work item age**: How long an unfinished item has been in progress. The earliest sign that something is stuck.
+- **WSJF (weighted shortest job first)**: Cost of delay divided by job size. Do the highest ratio first.

@@ -1,0 +1,226 @@
+{
+ "askwright": 1,
+ "id": "steerwright-setup",
+ "title": "steerwright setup: what counts, limits, name, repo",
+ "context": "",
+ "asked_by": "steerwright kickoff session, 2026-11-09",
+ "product": "",
+ "session": "",
+ "working_dir": "D:\\m4bwa\\Claude\\Projects\\Ai\\steerwright",
+ "media_roots": [],
+ "questions": [
+  {
+   "id": "unit",
+   "kind": "choice",
+   "title": "What counts as one project",
+   "question": "What should count as one project on the steerwright main page?",
+   "why": "Discovery found 63 recently active folders (worktrees already folded in). The WIP limit and the weekly reviews work per project, so this decides whether the page reads as 63 rows or about a dozen.",
+   "options": [
+    {
+     "id": "group",
+     "label": "Group them",
+     "consequence": "Plugins, packages and films each roll up into a portfolio line (e.g. 'plugin family', 'package modernization'); big standalone works (Arvum, Tiny Colony, each film) stay separate. About 10-15 rows."
+    },
+    {
+     "id": "each",
+     "label": "Every repo or folder",
+     "consequence": "63 rows; the WIP limit only makes sense if it is large."
+    },
+    {
+     "id": "pick",
+     "label": "Only what I add",
+     "consequence": "Discovery proposes; nothing enters until you accept it."
+    }
+   ],
+   "guess": {
+    "option": "group",
+    "why": "63 rows break the WIP limit and the weekly review; your plugins move as one family of work.",
+    "confidence": "low"
+   },
+   "one_pager": [
+    {
+     "type": "text",
+     "text": "Found today: Arvum Electrum, Tiny Colony, the siege news film, about 40 wright plugins, about 8 packages, homework, the music projects and the chain runs (book learnings, technique harvest)."
+    }
+   ]
+  },
+  {
+   "id": "wip",
+   "kind": "choice",
+   "title": "WIP limit on active projects",
+   "question": "How many projects may be active at once before steerwright warns?",
+   "why": "Above the limit, the main page warns and weekly reviews propose tabling the quietest projects. The research suggests 3 for one person, but your agents can push several at once.",
+   "options": [
+    {
+     "id": "3",
+     "label": "Limit of 3",
+     "consequence": "The research default; most projects would get tabled."
+    },
+    {
+     "id": "5",
+     "label": "Limit of 5",
+     "consequence": "Two or three main works plus a couple of side lines."
+    },
+    {
+     "id": "8",
+     "label": "Limit of 8",
+     "consequence": "Loose; it would warn only when things sprawl."
+    }
+   ],
+   "guess": {
+    "option": "5",
+    "why": "With grouping and agents doing the doing, your attention, not the hands, is the limit; 5 is between the research's 3 and your actual spread.",
+    "confidence": "low"
+   }
+  },
+  {
+   "id": "stall",
+   "kind": "choice",
+   "title": "Stall rule",
+   "question": "After how many weeks without progress should the review suggest tabling a project?",
+   "why": "This is the kill criterion the weekly review checks. It only suggests tabling; you still decide on the review page.",
+   "options": [
+    {
+     "id": "2",
+     "label": "2 weeks",
+     "consequence": "Aggressive; good for a small WIP limit."
+    },
+    {
+     "id": "4",
+     "label": "4 weeks",
+     "consequence": "The default in the research notes."
+    },
+    {
+     "id": "8",
+     "label": "8 weeks",
+     "consequence": "Gentle; long creative pauses stay active."
+    }
+   ],
+   "guess": {
+    "option": "4",
+    "why": "A month of silence usually means the project is parked already, just not on purpose.",
+    "confidence": "low"
+   }
+  },
+  {
+   "id": "home",
+   "kind": "choice",
+   "title": "Where the registry lives",
+   "question": "Where should the project registry (projects.json, review history, post-mortems) live?",
+   "why": "The registry is the only state steerwright writes. The siblings keep theirs in ~/.askwright, ~/.chainwright and ~/.grindwright.",
+   "options": [
+    {
+     "id": "dot",
+     "label": "~/.steerwright",
+     "consequence": "Same as the siblings; machine-local."
+    },
+    {
+     "id": "vault",
+     "label": "The everlast vault",
+     "consequence": "Synced with your other records; post-mortems sit beside your notes."
+    }
+   ],
+   "guess": {
+    "option": "dot",
+    "why": "Matches the siblings; the vault can get an export later.",
+    "confidence": "low"
+   }
+  },
+  {
+   "id": "name",
+   "kind": "choice",
+   "title": "Name",
+   "question": "Keep the name steerwright?",
+   "why": "It names the repo, the plugin and the skill, so changing it later costs a rename everywhere.",
+   "options": [
+    {
+     "id": "keep",
+     "label": "steerwright",
+     "consequence": "Steering projects to an end."
+    },
+    {
+     "id": "finishwright",
+     "label": "finishwright",
+     "consequence": "Says the goal: finish, table or drop."
+    },
+    {
+     "id": "helmwright",
+     "label": "helmwright",
+     "consequence": "Similar to steer, less obvious."
+    }
+   ],
+   "guess": {
+    "option": "keep",
+    "why": "It reads well beside chainwright and grindwright.",
+    "confidence": "low"
+   },
+   "refs": [
+    {
+     "path": "D:/m4bwa/Claude/Projects/Ai/steerwright",
+     "label": "plugin folder"
+    }
+   ]
+  },
+  {
+   "id": "repo",
+   "kind": "choice",
+   "title": "Repository",
+   "question": "Should the repo stay private for now?",
+   "why": "Making it public later is easy. The registry is never in the repo; only the code and references are.",
+   "options": [
+    {
+     "id": "private",
+     "label": "Private for now",
+     "consequence": "Go public after it has been used for a few weeks."
+    },
+    {
+     "id": "public",
+     "label": "Public now",
+     "consequence": "Released like the other wright plugins."
+    }
+   ],
+   "guess": {
+    "option": "private",
+    "why": "The kickoff said private until you say otherwise; it reads all your project names, so it should prove itself first.",
+    "confidence": "high"
+   },
+   "refs": [
+    {
+     "path": "D:/m4bwa/Claude/Projects/Ai/steerwright",
+     "label": "plugin folder"
+    }
+   ]
+  },
+  {
+   "id": "schedule",
+   "kind": "choice",
+   "title": "Weekly review trigger",
+   "question": "Should the weekly review run on a schedule, or only when you ask?",
+   "why": "A scheduled task would open review pages by itself each week; the kickoff says to ask before adding any scheduled task.",
+   "options": [
+    {
+     "id": "manual",
+     "label": "When I ask",
+     "consequence": "Run sw.py review or say 'weekly review'."
+    },
+    {
+     "id": "weekly",
+     "label": "Every week by itself",
+     "consequence": "A scheduled task makes the review pages for every active project."
+    }
+   ],
+   "guess": {
+    "option": "manual",
+    "why": "Prove the reviews are useful before automating them.",
+    "confidence": "low"
+   },
+   "reversible": true
+  }
+ ],
+ "created": "2026-11-09T20:19:31-06:00",
+ "updated": "2026-11-09T20:19:31-06:00",
+ "project": {
+  "name": "steerwright",
+  "path": "D:/m4bwa/Claude/Projects/Ai/steerwright"
+ }
+}

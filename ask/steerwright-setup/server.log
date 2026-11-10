@@ -1,0 +1,1 @@
+{"url": "http://127.0.0.1:52705/", "pid": 27572, "port": 52705, "set_dir": "D:\\m4bwa\\Claude\\Projects\\Ai\\steerwright\\ask\\steerwright-setup", "started": "2026-11-09T20:19:56-06:00", "dashboard_url": "http://127.0.0.1:52705/sessions", "ok": true, "warnings": [], "check": {"ok": true, "page": 200, "api": 200, "media": "none"}}
