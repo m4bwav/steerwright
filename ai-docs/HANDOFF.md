@@ -1,6 +1,6 @@
 # steerwright HANDOFF
 
-Status: in progress (session 9: 0.4.0 parking lot tab; 14 films parked in lot "Video projects")
+Status: in progress (session 10: beat evidence pass done; idle until a review is due or the wiki exists)
 
 ## Where things are
 - Plugin folder: D:/m4bwa/Claude/Projects/Ai/steerwright, private GitHub repo m4bwav/steerwright (main), v0.4.0 released, installed as steerwright@mark-local, listed in plugin-backlog existing-plugins.md.
@@ -23,7 +23,7 @@ Status: in progress (session 9: 0.4.0 parking lot tab; 14 films parked in lot "V
 ## Next (in order)
 1. Next weekly review round when due (`sw.py review`); apply answers with `sw.py apply-review`.
 2. evergreen-worth A/B against a no-skill baseline (needs a runner the classifier allows).
-3. everscout beat project-management: second evidence source per book, run searches.md queries, fill the latest tier (session 9 added Open Library ids for all 12 books and recovered the 3 Reddit threads, indie-ai-scout 9b19ff5).
+3. everscout beat project-management: done through session 10 (indie-ai-scout 07610ee); next scan when the beat is due.
 4. Push wiki drafts once the wiki exists.
 5. Optional: a per-project repo traffic panel (match a project's GitHub repo to repo-traffic's CSV rows) if Mark wants more than the full dashboard page.
 6. README banner only if the repo goes public (ask first).
