@@ -78,3 +78,7 @@ evergreen-test: 7/7 cases pass (one tester run each, scratch STEERWRIGHT_HOME); 
 
 ## 2026-11-10 (session 12)
 - Idle: no stalled project (all 9 active within 2 d), wiki .wiki.git still missing, worth A/B still blocked. Wrap-up: nothing beyond this log passed the gate.
+
+## 2026-11-11 Works with
+
+At the owner's request: a README "Works with" section, each entry naming the real handoff with a partner plugin (taken from the skills that name each other) and why the pair helps.

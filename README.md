@@ -30,6 +30,14 @@ python skills/steerwright/scripts/sw.py apply-review        # apply the answers
 
 Python 3.9 or later, standard library only. Tests: `python -m unittest discover -s tests`.
 
+## Works with
+
+steerwright is the hub: it reads what its siblings leave on disk and links to their pages.
+
+- [askwright](https://github.com/m4bwav/askwright): steerwright lists every open askwright set across projects, starts the askwright server if it isn't running, and puts "answer N questions" at the top of your actions. One place shows what is waiting on you.
+- [grindwright](https://github.com/m4bwav/grindwright): it shows the grind ledger by lane and rebuilds grindwright's index, so you can see where each project's work is going.
+- [chainwright](https://github.com/m4bwav/chainwright): it lists chain runs with their sessions and ledgers. chainwright and grindwright pages link back to the hub when it is installed.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE). Security: [SECURITY.md](SECURITY.md).
