@@ -1,4 +1,4 @@
-Steerwright (version 0.3.0) is a Claude Code plugin for one maker running many projects. It keeps a list of every project, shows how each one is moving on local pages, and asks the keep, table or abandon question once a week. The aim is that each project ends as done, tabled or abandoned rather than drifting.
+Steerwright (version 0.4.0) is a Claude Code plugin for one maker running many projects. It keeps a list of every project, shows how each one is moving on local pages, and asks the keep, table or abandon question once a week. The aim is that each project ends as done, tabled or abandoned rather than drifting.
 
 It reads the files of three sibling plugins and never writes them:
 

@@ -1,4 +1,4 @@
-All commands run as `python skills/steerwright/scripts/sw.py COMMAND`. This list matches `sw.py --help` for 0.3.0. Most commands print JSON.
+All commands run as `python skills/steerwright/scripts/sw.py COMMAND`. This list matches `sw.py --help` for 0.4.0. Most commands print JSON.
 
 ## Registry
 
@@ -32,6 +32,7 @@ All commands run as `python skills/steerwright/scripts/sw.py COMMAND`. This list
 | `apply-review [NAME] [--dry-run]` | Applies answered review sets. Keep stores the next three actions, table stores the revisit date and wake condition, abandon writes the post-mortem. |
 | `table NAME [--revisit YYYY-MM-DD] [--wake TEXT]` | Parks a project until a date or condition. Without `--revisit` it is tabled indefinitely and never wakes on its own. |
 | `traffic [PATH] [--off]` | Points the main page at a repo-traffic dashboard (a clone folder or its `data/dashboard.html`), served at `/traffic`. |
+| `park NAME [--lot LOT] [--note TEXT]` | Moves a project to the parking lot (a named lot such as "Video projects"). Parked projects stay off the main table, the WIP count and stall reviews; `activate` brings one back. |
 | `abandon NAME --why TEXT [--keep TEXT]` | Closes a project with a short post-mortem. |
 | `done NAME [--note TEXT]` | Marks a project finished. |
 | `activate NAME` | Makes a project active again. |

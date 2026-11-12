@@ -1,5 +1,7 @@
 # steerwright
 
+![A ship's brass helm wheel facing a calm sea of small islands with lighthouses, one glowing route on the water leading ahead](https://raw.githubusercontent.com/m4bwav/steerwright/main/.github/images/banner.jpg)
+
 Project management for one maker with many projects. Steerwright keeps a list of every project, shows how each one is moving, and asks the keep, table or abandon question once a week, so projects end as done, tabled or abandoned instead of drifting.
 
 It sits on top of three sibling plugins and only reads their files:

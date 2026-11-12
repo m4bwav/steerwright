@@ -13,7 +13,7 @@
 python -m unittest discover -s tests
 ```
 
-On 0.3.0 this runs 10 tests, all passing.
+On 0.4.0 this runs 14 tests, all passing.
 
 ## Rules
 

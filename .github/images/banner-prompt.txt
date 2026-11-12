@@ -1,0 +1,3 @@
+Prompt: Wide painted illustration: a ship's brass helm wheel in the foreground on the deck of a small sailing ship at dawn, steering through a calm sea of scattered islands, each island with its own small lighthouse or half-built harbour, some lit and finished, some dim and waiting, one clear glowing route on the water ahead, warm golden light, soft teal sea, clean composition, wide cinematic banner, no text, no letters, no logos
+Seed: 41103
+Model: Z-Image Turbo via ComfyUI (comfyui-gen building-sprite workflow, latent 1536x640)
