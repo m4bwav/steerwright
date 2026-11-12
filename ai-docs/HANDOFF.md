@@ -1,6 +1,6 @@
 # steerwright HANDOFF
 
-Status: in progress (session 13: idle until a review is due or the wiki exists)
+Status: in progress (session 14: idle until a review is due)
 
 ## Where things are
 - Plugin folder: D:/m4bwa/Claude/Projects/Ai/steerwright, PUBLIC GitHub repo m4bwav/steerwright (since 2026-11-12; wiki live at 0.4.0, banner, social preview, Discussions) (main), v0.4.0 released, installed as steerwright@mark-local, listed in plugin-backlog existing-plugins.md.
