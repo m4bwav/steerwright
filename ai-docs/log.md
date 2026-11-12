@@ -82,3 +82,6 @@ evergreen-test: 7/7 cases pass (one tester run each, scratch STEERWRIGHT_HOME); 
 ## 2026-11-11 Works with
 
 At the owner's request: a README "Works with" section, each entry naming the real handoff with a partner plugin (taken from the skills that name each other) and why the pair helps.
+
+## 2026-11-12 (session 13)
+- Idle: no stalled project, .wiki.git still missing, worth A/B still blocked. New active project discovered: arvum-guitar-song (active 10 vs WIP 8); left standalone, flagged for Mark (could join Arvum Electrum). Wrap-up: nothing beyond this log passed the gate.

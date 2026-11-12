@@ -1,6 +1,6 @@
 # steerwright HANDOFF
 
-Status: in progress (session 12: idle until a review is due or the wiki exists)
+Status: in progress (session 13: idle until a review is due or the wiki exists)
 
 ## Where things are
 - Plugin folder: D:/m4bwa/Claude/Projects/Ai/steerwright, private GitHub repo m4bwav/steerwright (main), v0.4.0 released, installed as steerwright@mark-local, listed in plugin-backlog existing-plugins.md.
@@ -19,7 +19,7 @@ Status: in progress (session 12: idle until a review is due or the wiki exists)
 - Save a first wiki page at https://github.com/m4bwav/steerwright/wiki/_new so the drafts can be pushed.
 - Flag only: four labs package repos added to Open source software.
 - Flag only: "tiny-colony-2" renamed "voicewright-lab ask pilot" (small ruling).
-- Flag only: musicwright merged into AI plugins (session 11). Active 9 vs WIP 8: pick one to table or park when convenient.
+- Flag only: musicwright merged into AI plugins (session 11). New project arvum-guitar-song (session 13) left standalone; merge into Arvum Electrum with `sw.py merge` if wanted. Active 10 vs WIP 8: pick ones to table or park when convenient.
 
 ## Next (in order)
 1. Next weekly review round when due (`sw.py review`); apply answers with `sw.py apply-review`.
