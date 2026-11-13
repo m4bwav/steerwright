@@ -20,7 +20,7 @@ grindwright state: this script never writes their files.
   sw.py wip [N]                               show or set the WIP limit on active projects (default 8)
   sw.py stall [WEEKS]                         show or set the stall rule for reviews (default 8 weeks)
   sw.py merge NAME... --into NAME             fold projects into one (a group counts once against the WIP limit)
-  sw.py serve [--port P] [--detach] [--open]  local pages on 127.0.0.1 (main + one per project)
+  sw.py serve [--port P] [--own] [--detach] [--open]  pages inside askwright's server when installed, else its own
   sw.py up | down                             start steerwright + askwright dashboard, build chain/grind indexes, open;
                                               down stops only the PIDs up started
 """
@@ -30,6 +30,7 @@ import json
 import os
 import random
 import re
+import socket
 import subprocess
 import sys
 import threading
@@ -41,7 +42,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -871,51 +872,67 @@ def project_page(key, p):
     return page(f"{p['name']}: steerwright", body)
 
 
+ROOT_LINK = re.compile(r"""((?:href|src|action)=['"])/(?!/)""")
+
+
+def render(path, query="", base=""):
+    """One page as (status, body, content type). base is where the pages are mounted ("" at the root, "/steer"
+    inside askwright's shared server); root links in the HTML are moved under it."""
+    code, body, ctype = _render(path, query)
+    if base and ctype.startswith("text/html"):
+        body = ROOT_LINK.sub(lambda m: m.group(1) + base + "/", body)
+    return code, body, ctype
+
+
+def _render(path, query):
+    q = urllib.parse.parse_qs(query)
+    try:
+        data = load()
+        if path == "/":
+            return 200, main_page(data, show_all=q.get("all", ["0"])[0] not in ("0", "")), HTML
+        if path == "/parking":
+            return 200, parking_page(data, q.get("lot", [None])[0]), HTML
+        if path in ("/favicon.svg", "/favicon.ico"):
+            return 200, FAVICON, "image/svg+xml"
+        if path == "/ping":
+            return 200, json.dumps({"steerwright": VERSION, "pid": os.getpid()}), "application/json"
+        if path.startswith("/p/"):
+            key = path[3:]
+            if key in data["projects"]:
+                return 200, project_page(key, data["projects"][key]), HTML
+        if path == "/traffic":
+            tf = traffic_file()
+            if tf:
+                bar = ("<div style='font:13px system-ui;padding:6px 12px;background:#222;color:#ddd'><a style='color:#9cf' href='/'>&larr; steerwright</a>"
+                       f" &middot; repo traffic dashboard, built {datetime.fromtimestamp(tf.stat().st_mtime):%Y-%m-%d %H:%M} (rebuild: repo-traffic dashboard.py build)</div>")
+                doc = tf.read_text(encoding="utf-8", errors="replace")
+                doc = re.sub(r"(<body[^>]*>)", lambda m: m.group(1) + bar, doc, count=1) if "<body" in doc else bar + doc
+                return 200, doc, HTML
+        if path in ("/sib/chainwright", "/sib/grindwright"):
+            f = sib_home(path[5:]) / "index.html"
+            if f.exists():
+                return 200, f.read_text(encoding="utf-8", errors="replace"), HTML
+        return 404, page("not found", "<p>not found. <a href='/'>home</a></p>"), HTML
+    except Exception as e:  # keep the server alive; show the error
+        return 500, page("error", f"<pre>{esc(repr(e))}</pre>"), HTML
+
+
+HTML = "text/html; charset=utf-8"
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
-    def send(self, code, body, ctype="text/html; charset=utf-8"):
-        b = body.encode("utf-8")
+    def do_GET(self):
+        u = urllib.parse.urlparse(self.path)
+        code, body, ctype = render(u.path, u.query)
+        raw = body.encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", ctype)
-        self.send_header("Content-Length", str(len(b)))
+        self.send_header("Content-Length", str(len(raw)))
         self.end_headers()
-        self.wfile.write(b)
-
-    def do_GET(self):
-        path = urllib.parse.urlparse(self.path).path
-        try:
-            data = load()
-            if path == "/":
-                q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-                return self.send(200, main_page(data, show_all=q.get("all", ["0"])[0] not in ("0", "")))
-            if path == "/parking":
-                q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-                return self.send(200, parking_page(data, q.get("lot", [None])[0]))
-            if path in ("/favicon.svg", "/favicon.ico"):
-                return self.send(200, FAVICON, "image/svg+xml")
-            if path == "/ping":
-                return self.send(200, json.dumps({"steerwright": VERSION, "pid": os.getpid()}), "application/json")
-            if path.startswith("/p/"):
-                key = path[3:]
-                if key in data["projects"]:
-                    return self.send(200, project_page(key, data["projects"][key]))
-            if path == "/traffic":
-                tf = traffic_file()
-                if tf:
-                    bar = ("<div style='font:13px system-ui;padding:6px 12px;background:#222;color:#ddd'><a style='color:#9cf' href='/'>&larr; steerwright</a>"
-                           f" &middot; repo traffic dashboard, built {datetime.fromtimestamp(tf.stat().st_mtime):%Y-%m-%d %H:%M} (rebuild: repo-traffic dashboard.py build)</div>")
-                    doc = tf.read_text(encoding="utf-8", errors="replace")
-                    doc = re.sub(r"(<body[^>]*>)", lambda m: m.group(1) + bar, doc, count=1) if "<body" in doc else bar + doc
-                    return self.send(200, doc)
-            if path in ("/sib/chainwright", "/sib/grindwright"):
-                f = sib_home(path[5:]) / "index.html"
-                if f.exists():
-                    return self.send(200, f.read_text(encoding="utf-8", errors="replace"))
-            self.send(404, page("not found", "<p>not found. <a href='/'>home</a></p>"))
-        except Exception as e:  # keep the server alive; show the error
-            self.send(500, page("error", f"<pre>{esc(repr(e))}</pre>"))
+        self.wfile.write(raw)
 
 
 def port_open(port):
@@ -960,33 +977,89 @@ def detach(args):
     return subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, **kw)
 
 
-def ping_steer(port):
+def ping_steer(port, url=None):
     try:
-        return json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/ping", timeout=1.5).read())
+        u = (url or f"http://127.0.0.1:{port}/") + "ping"
+        info = json.loads(urllib.request.urlopen(u, timeout=1.5).read())
+        return info if "steerwright" in info else None
     except Exception:
         return None
 
 
+def serve_in_askwright():
+    """Ask askwright's shared server to carry the pages at /steer/. None when askwright is missing or says no."""
+    ask = ask_script()
+    if not ask or os.environ.get("STEERWRIGHT_OWN_SERVER"):
+        return None
+    try:
+        r = subprocess.run([sys.executable, ask, "dashboard", "--detach"], capture_output=True, text=True,
+                           timeout=120, **({"creationflags": 0x08000000} if os.name == "nt" else {}))
+        hub = json.loads(r.stdout)
+    except Exception:
+        return None
+    url = (hub.get("url") or "") + "steer/"
+    info = hub.get("ok") and ping_steer(None, url)
+    if not info:
+        return None  # an askwright older than 0.29.0 has no /steer/
+    rec = {"url": url, "port": hub["port"], "pid": hub["pid"], "started": now_iso(), "hosted_by": "askwright"}
+    write_json(home() / "server.json", rec)
+    return rec
+
+
+class Server(ThreadingHTTPServer):
+    # Windows lets SO_REUSEADDR share a port another program is listening on; ask for it exclusively instead.
+    allow_reuse_address = os.name != "nt"
+
+    def server_bind(self):
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
+def bind(port):
+    """The wanted port, or any free one when another program holds it."""
+    try:
+        return Server(("127.0.0.1", port), Handler)
+    except OSError:
+        return Server(("127.0.0.1", 0), Handler)
+
+
 def cmd_serve(a):
     srv = read_json(home() / "server.json", {}) or {}
-    port = a.port or srv.get("port") or DEFAULT_PORT
-    info = ping_steer(port)
-    url = f"http://127.0.0.1:{port}/"
-    if info:
-        out = {"ok": True, "url": url, "pid": info["pid"], "reused": True}
-    elif a.detach:
-        proc = detach([sys.executable, str(Path(__file__).resolve()), "serve", "--port", str(port)])
+    own = getattr(a, "own", False) or a.port is not None
+    if srv.get("url") and ping_steer(None, srv["url"]) and not (own and srv.get("hosted_by")):
+        out = {"ok": True, "url": srv["url"], "pid": srv.get("pid"), "reused": True, "hosted_by": srv.get("hosted_by")}
+        print(json.dumps(out))
+        if a.open:
+            webbrowser.open(srv["url"])
+        return out
+    hosted = None if own else serve_in_askwright()
+    if hosted:
+        out = {"ok": True, "url": hosted["url"], "pid": hosted["pid"], "hosted_by": "askwright"}
+        print(json.dumps(out))
+        if a.open:
+            webbrowser.open(hosted["url"])
+        return out
+    port = a.port if a.port is not None else (srv.get("port") if srv.get("port") and not srv.get("hosted_by")
+                                              else DEFAULT_PORT)
+    if a.detach:
+        before = srv.get("started")
+        proc = detach([sys.executable, str(Path(__file__).resolve()), "serve", "--own", "--port", str(port)])
+        info = None
         for _ in range(40):
             time.sleep(0.25)
-            info = ping_steer(port)
-            if info:
-                break
+            cur = read_json(home() / "server.json", {}) or {}
+            if cur.get("pid") == proc.pid and cur.get("started") != before:
+                info = ping_steer(cur.get("port"))
+                if info:
+                    break
         if not info:
-            sys.exit(json.dumps({"ok": False, "error": f"server did not answer on {port}"}))
-        write_json(home() / "server.json", {"url": url, "port": port, "pid": info["pid"], "started": now_iso()})
-        out = {"ok": True, "url": url, "pid": info["pid"], "started": proc.pid}
+            sys.exit(json.dumps({"ok": False, "error": f"server did not answer (wanted port {port})"}))
+        out = {"ok": True, "url": cur["url"], "pid": info["pid"], "started": proc.pid}
     else:
-        httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+        httpd = bind(port)
+        port = httpd.server_address[1]
+        url = f"http://127.0.0.1:{port}/"
         write_json(home() / "server.json", {"url": url, "port": port, "pid": os.getpid(), "started": now_iso()})
         print(json.dumps({"ok": True, "url": url, "pid": os.getpid()}), flush=True)
         threading.Thread(target=warm_cache, daemon=True).start()
@@ -996,7 +1069,7 @@ def cmd_serve(a):
         return
     print(json.dumps(out))
     if a.open:
-        webbrowser.open(url)
+        webbrowser.open(out["url"])
     return out
 
 
@@ -1014,8 +1087,8 @@ def sibling_script(plugin, rel):
 
 def cmd_up(a):
     started, report = [], {}
-    out = cmd_serve(argparse.Namespace(port=None, detach=True, open=False))
-    if out and not out.get("reused"):
+    out = cmd_serve(argparse.Namespace(port=None, detach=True, open=False, own=False))
+    if out and not out.get("reused") and not out.get("hosted_by"):
         started.append({"name": "steerwright", "pid": out["pid"]})
     report["steerwright"] = out["url"]
     srv = read_json(sib_home("askwright") / "dashboard" / "server.json", {}) or {}
@@ -1055,7 +1128,7 @@ def cmd_down(a):
             kill_pid(s["pid"])
             stopped.append(s)
     srv = read_json(home() / "server.json", {}) or {}  # steerwright's own server, even when up did not start it
-    pid = (ping_steer(srv["port"]) or {}).get("pid") if srv.get("port") else None
+    pid = (ping_steer(srv["port"]) or {}).get("pid") if srv.get("port") and not srv.get("hosted_by") else None
     if pid and pid != os.getpid() and pid_alive(pid):
         kill_pid(pid)
         stopped.append({"name": "steerwright", "pid": pid})
@@ -1519,7 +1592,7 @@ def main(argv=None):
     s = sub.add_parser("done"); s.add_argument("name"); s.add_argument("--note"); s.set_defaults(fn=cmd_done)
     s = sub.add_parser("activate"); s.add_argument("name"); s.set_defaults(fn=cmd_activate)
     s = sub.add_parser("wip"); s.add_argument("n", nargs="?", type=int); s.set_defaults(fn=cmd_wip)
-    s = sub.add_parser("serve"); s.add_argument("--port", type=int); s.add_argument("--detach", action="store_true"); s.add_argument("--open", action="store_true"); s.set_defaults(fn=cmd_serve)
+    s = sub.add_parser("serve"); s.add_argument("--port", type=int); s.add_argument("--own", action="store_true", help="its own server, not inside askwright's"); s.add_argument("--detach", action="store_true"); s.add_argument("--open", action="store_true"); s.set_defaults(fn=cmd_serve)
     s = sub.add_parser("up"); s.add_argument("--no-open", action="store_true"); s.set_defaults(fn=cmd_up)
     s = sub.add_parser("down"); s.set_defaults(fn=cmd_down)
     s = sub.add_parser("shortcut"); s.set_defaults(fn=lambda a: print(json.dumps({"shortcut": str(write_shortcut())})))

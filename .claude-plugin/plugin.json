@@ -1,6 +1,6 @@
 {
   "name": "steerwright",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Project management for one maker with many projects: a registry, local pages with flow charts and forecasts over askwright, chainwright and grindwright state, and weekly keep, table or abandon reviews that drive each project to an end.",
   "author": {
     "name": "Mark Rogers"

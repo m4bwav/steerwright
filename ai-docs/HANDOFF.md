@@ -3,6 +3,7 @@
 Status: in progress (session 14: idle until a review is due)
 
 ## Where things are
+- 2026-11-13: 0.5.0 serves its pages inside askwright's shared server (127.0.0.1:47631/steer/) when askwright is installed; otherwise its own server on 47630 or a free port. See the log.
 - Plugin folder: D:/m4bwa/Claude/Projects/Ai/steerwright, PUBLIC GitHub repo m4bwav/steerwright (since 2026-11-12; wiki live at 0.4.0, banner, social preview, Discussions) (main), v0.4.0 released, installed as steerwright@mark-local, listed in plugin-backlog existing-plugins.md.
 - Script: skills/steerwright/scripts/sw.py 0.4.0. Design: ai-docs/plans/2026-11-09-design.md. Log: ai-docs/log.md. Tests: `python -m unittest tests/test_sw.py` (14, pass). Evals: skills/steerwright/evals/evals.json 7/7 pass (single run each, subagent proxy; skills/steerwright/TESTS.md T-20261109-1). Worth: UNPROVEN (lite only).
 - Real registry: ~/.steerwright/projects.json (backup projects.pre-collectives.json). Active below the old 14 after session 7 (3 tabled indefinitely, krea2 abandoned), WIP 8, stall 8 weeks. Repo traffic: registry `traffic_dashboard` = repo-traffic/data/dashboard.html, served at http://127.0.0.1:47630/traffic.
