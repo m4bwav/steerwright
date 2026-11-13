@@ -18,6 +18,7 @@ It sits on top of three sibling plugins and only reads their files:
 - Your repo-traffic dashboard on the same site: `sw.py traffic PATH` once, then a "repo traffic" link on every page opens it at `/traffic`.
 - Weekly reviews show the project's HANDOFF and continue prompt, and a project can be tabled indefinitely (no wake date).
 - `sw.py up` and a desktop shortcut that start all the page servers; `sw.py down` stops what it started plus steerwright's own server.
+- One server: with askwright 0.29.0 or later installed, the pages live inside askwright's shared server at `http://127.0.0.1:47631/steer/`. Without askwright, `sw.py serve` runs its own server on 47630, or on a free port when another program holds 47630 (the next start tries that port again). `--own` forces its own server.
 - Reference notes on project management from Gantt to flow metrics and AI tools in 2026, used for advice.
 
 ## Quick start

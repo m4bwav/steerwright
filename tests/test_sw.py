@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -254,6 +255,46 @@ class Discover(unittest.TestCase):
             self.assertEqual(set(props[0]["sources"]), {"askwright", "handoff"})
             quiet(["discover", "--root", str(d / "work"), "--no-group", "--since", "100000", "--apply"])
             self.assertEqual(sorted(sw.load()["projects"]), ["film", "game-one"])
+
+
+class OneServer(unittest.TestCase):
+    """0.5.0: pages render without a server, so askwright's shared server can carry them at /steer/."""
+
+    def setUp(self):
+        self.td = tempfile.TemporaryDirectory()
+        self.env = {k: os.environ.get(k) for k in ("STEERWRIGHT_HOME", "ASKWRIGHT_HOME")}
+        os.environ["STEERWRIGHT_HOME"] = str(Path(self.td.name, "sh"))
+        os.environ["ASKWRIGHT_HOME"] = str(Path(self.td.name, "ah"))
+
+    def tearDown(self):
+        for k, v in self.env.items():
+            os.environ.pop(k, None) if v is None else os.environ.__setitem__(k, v)
+        self.td.cleanup()
+
+    def test_render_moves_root_links_under_the_mount(self):
+        code, body, ctype = sw.render("/", "", "/steer")
+        self.assertEqual((code, ctype.split(";")[0]), (200, "text/html"))
+        self.assertIn("href='/steer/parking'", body)
+        self.assertNotIn("href='/parking'", body)
+        self.assertIn("href='/parking'", sw.render("/")[1])
+        self.assertEqual(sw.render("/nope", "", "/steer")[0], 404)
+        self.assertIn('"steerwright"', sw.render("/ping")[1])
+
+    def test_taken_port_falls_back_to_a_free_one(self):
+        first = sw.bind(0)
+        try:
+            taken = first.server_address[1]
+            second = sw.bind(taken)
+            try:
+                self.assertNotEqual(second.server_address[1], taken)
+            finally:
+                second.server_close()
+        finally:
+            first.server_close()
+
+    def test_without_askwright_it_serves_itself(self):
+        with unittest.mock.patch.object(sw, "ask_script", return_value=None):
+            self.assertIsNone(sw.serve_in_askwright())
 
 
 if __name__ == "__main__":

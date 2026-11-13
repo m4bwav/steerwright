@@ -89,3 +89,6 @@ At the owner's request: a README "Works with" section, each entry naming the rea
 
 ## 2026-11-12 (session 14)
 - Idle: all 10 active projects green (newest activity 0-4 d), no review due. Worth A/B still blocked. Wrap-up: nothing beyond this log passed the gate.
+
+## 2026-11-13 · one server (0.5.0)
+- Mark asked for steerwright on askwright's single server, still running without askwright, and choosing another port when 47630 is taken. `render(path, query, base)` now builds every page without a server; askwright 0.29.0 mounts it at `/steer/`. `sw.py serve` registers there when askwright is installed (server.json `hosted_by: askwright`, and `down` leaves that process alone), else binds its own port exclusively (Windows SO_REUSEADDR had let it share a taken port) and falls back to a free one. Tests: OneServer (3).
