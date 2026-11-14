@@ -555,6 +555,18 @@ def ask_script():
     return next((c for c in cands if c and Path(c).exists()), None)
 
 
+def mark_consumed(s, note):
+    """Tell askwright the answers were used, so its sweep and week warning stop listing the set."""
+    ask = ask_script()
+    if not ask:
+        return False
+    try:
+        r = subprocess.run([sys.executable, ask, "consume", str(s), "--note", note], capture_output=True, text=True, timeout=60)
+        return r.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
 def review_docs(g):
     """The project's own documents, shown in the review so the person can judge next actions without opening files."""
     out = []
@@ -1493,6 +1505,7 @@ def cmd_apply_review(a):
             res["dry_run"] = True
         else:
             write_json(s / "applied.json", {"ts": now_iso(), "decision": choice})
+            res["consumed"] = mark_consumed(s, f"steerwright apply-review: {choice}")
         out.append(res)
     if not a.dry_run:
         save(data)
