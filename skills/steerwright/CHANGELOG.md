@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261114-1 · 2026-11-14 · 0.5.1: apply-review marks the review set used in askwright
+- because: askwright's answer sweep (askwright 0.31.0) found all six applied 2026-11-09 weekly reviews still listed as unprocessed: apply-review wrote applied.json but never ran `ask.py consume`, so the week warning kept naming them
+- files: scripts/sw.py (mark_consumed), tests/test_sw.py
+apply-review now runs askwright's `consume` on each set it applies, with the decision as the note; it records `consumed` in its output and carries on when ask.py is absent. Pair: askwright answer-sweep chain.
+
 ### C-20261109-4 · 2026-11-09 · 0.4.0: parking lot tab
 - because: Mark asked for a project parking lot tab with a video projects sub-tab (the Gray King film and his other major films) so he can choose one to keep improving
 - files: scripts/sw.py, SKILL.md, tests/test_sw.py

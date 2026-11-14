@@ -180,6 +180,27 @@ class Commands(unittest.TestCase):
             self.assertEqual(p["next_actions"], ["a", "b", "c"])
             self.assertEqual(sw.next_actions({"items": [], "asks_open": 0, "prompts": []}, 3, p), ["a", "b", "c"])
 
+    def test_apply_review_marks_set_consumed_in_askwright(self):
+        with Env() as d:
+            data = sw.load()
+            data["projects"]["c"] = sw.new_project("c", [str(d / "c")])
+            sw.save(data)
+            s = d / "steer" / "reviews" / "steer-c-2026-11-09"
+            sw.write_json(s / "questions.json", {"questions": []})
+            sw.write_json(s / "answers.json", {"answers": {"decision": {"choice": "keep", "state": "answered"}}})
+            log = d / "consumed.txt"
+            fake = d / "ask.py"
+            fake.write_text("import sys\nopen(%r, 'a').write(' '.join(sys.argv[1:]))\n" % str(log), encoding="utf-8")
+            orig = sw.ask_script
+            sw.ask_script = lambda: str(fake)
+            try:
+                quiet(["apply-review"])
+            finally:
+                sw.ask_script = orig
+            text = log.read_text(encoding="utf-8")
+            self.assertTrue(text.startswith("consume " + str(s)))
+            self.assertIn("apply-review: keep", text)
+
     def test_table_without_date_is_indefinite(self):
         with Env() as d:
             data = sw.load()
