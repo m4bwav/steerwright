@@ -277,6 +277,23 @@ class Discover(unittest.TestCase):
             quiet(["discover", "--root", str(d / "work"), "--no-group", "--since", "100000", "--apply"])
             self.assertEqual(sorted(sw.load()["projects"]), ["film", "game-one"])
 
+    def test_links_to_askwright_and_grind_pages_and_who_is_running(self):
+        with Env() as d:
+            game = d / "work" / "game"
+            write(game / "ai-docs" / "grind" / "profile.json", "{}")
+            sw.write_json(d / "ask" / "projects" / "game-one.json", {"name": "Game One", "dirs": [str(game)]})
+            p = {"name": "game", "paths": [str(game / "sub")]}
+            self.assertEqual(sw.askwright_project(p)[0], "game-one")  # slug from the file name
+            self.assertEqual(sw.askwright_page_links(p), "")  # hub not running: no dead link
+            port = 47999
+            sw.write_json(d / "ask" / "dashboard" / "server.json", {"url": f"http://127.0.0.1:{port}/?t=x", "port": port})
+            with unittest.mock.patch.object(sw, "port_open", return_value=True):
+                links = sw.askwright_page_links(p)
+            self.assertIn(f"http://127.0.0.1:{port}/projects/game-one", links)
+            self.assertIn("/grind/game-one/", links)
+            with unittest.mock.patch.object(sw, "ask_script", return_value=None):
+                self.assertIn("Do not assume nobody is", sw.who_is_running(p))
+
 
 class OneServer(unittest.TestCase):
     """0.5.0: pages render without a server, so askwright's shared server can carry them at /steer/."""

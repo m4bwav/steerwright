@@ -192,6 +192,7 @@ def askwright_projects():
     for f in sorted((sib_home("askwright") / "projects").glob("*.json")):
         rec = read_json(f, None)
         if isinstance(rec, dict) and rec.get("name"):
+            rec.setdefault("slug", f.stem)  # records name their slug by file name
             out.append(rec)
     return out
 
@@ -555,6 +556,63 @@ def ask_script():
     return next((c for c in cands if c and Path(c).exists()), None)
 
 
+def askwright_project(p):
+    """(slug, dir) of the askwright project whose dirs hold one of this project's paths, else (None, None)."""
+    paths = [Path(x).resolve() for x in p.get("paths", []) if x]
+    best = (None, None)
+    for rec in askwright_projects():
+        for d in rec.get("dirs") or []:
+            try:
+                d = Path(d).resolve()
+            except (OSError, ValueError):
+                continue
+            if any(d == x or d in x.parents or x in d.parents for x in paths) and re.fullmatch(r"[a-z0-9-]+", rec.get("slug") or ""):
+                if best[1] is None or len(d.parts) > len(best[1].parts):
+                    best = (rec["slug"], d)
+    return best
+
+
+def askwright_page_links(p):
+    """Absolute links to the askwright project page and its grindwright page, only when the hub answers."""
+    slug, d = askwright_project(p)
+    srv = read_json(sib_home("askwright") / "dashboard" / "server.json", {}) or {}
+    if not slug or not srv.get("url") or not port_open(srv.get("port")):
+        return ""
+    u = urllib.parse.urlsplit(srv["url"])
+    base = f"{u.scheme}://{u.netloc}"
+    out = [f'<a href="{esc(base)}/projects/{esc(slug)}">askwright project page</a>']
+    if (d / "ai-docs" / "grind" / "profile.json").exists():
+        out.append(f'<a href="{esc(base)}/grind/{esc(slug)}/">grindwright page</a>')
+    return " · ".join(out)
+
+
+def who_is_running(p):
+    """askwright's who-is-running rows for the project's paths, as HTML; says so in words when it cannot tell."""
+    ask = ask_script()
+    paths = [x for x in p.get("paths", []) if x]
+    if not ask:
+        return "<p class='mut'>askwright is not installed, so steerwright cannot tell who is running here. Do not assume nobody is.</p>"
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("askwright_agents_for_steer", Path(ask).parent / "agents.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        data = mod.collect(paths)
+    except Exception as e:  # a failed read must never look like an empty list
+        return f"<p class='mut'>Could not check who is running ({esc(e)}). Do not assume nobody is.</p>"
+    rows = ""
+    for r in data.get("rows", []):
+        what = "; ".join(f"{c.get('id')} {c.get('title')}" for c in r.get("claims", [])) or r.get("title") or r.get("name") or "(no claimed task)"
+        subs = ", ".join(a.get("description") or a.get("id", "") for a in r.get("subagents", []))
+        rows += (f"<tr><td><b>{esc(r.get('status'))}</b></td><td>{esc(what)}" + (f"<br><span class='mut'>subagents: {esc(subs)}</span>" if subs else "")
+                 + f"</td><td>{esc(r.get('branch') or '')}<br><span class='mut'>{esc(r.get('worktree') or r.get('cwd') or '')}</span></td>"
+                 f"<td class='mut'>{esc('; '.join(r.get('evidence', [])))}</td></tr>")
+    body = (f"<table><tr><th>Status</th><th>Working on</th><th>Where</th><th>How it is known</th></tr>{rows}</table>" if rows
+            else "<p class='mut'>No agent session seen in this project's folders.</p>")
+    probs = "".join(f"<p class='mut'>Could not read: {esc(x)}</p>" for x in data.get("problems", []))
+    return f"<p class='mut'>Built {esc(data.get('built'))}.</p>{body}{probs}"
+
+
 def mark_consumed(s, note):
     """Tell askwright the answers were used, so its sweep and week warning stop listing the set."""
     ask = ask_script()
@@ -869,6 +927,8 @@ def project_page(key, p):
             f"<div class='tiles'><div class='tile'><b>{f['done']}</b><span>items done</span></div><div class='tile'><b>{f['remaining']}</b><span>remaining</span></div>"
             f"<div class='tile'><b>{cyc['p50'] if cyc['p50'] is not None else '-'}</b><span>cycle time p50 (d)</span></div><div class='tile'><b>{cyc['p85'] if cyc['p85'] is not None else '-'}</b><span>cycle time p85 (d)</span></div>"
             f"<div class='tile'><b>{g['asks_open']}</b><span>open asks</span></div></div>"
+            + (f"<p>{plinks}</p>" if (plinks := askwright_page_links(p)) else "")
+            + f"<h2>Who is running</h2>{who_is_running(p)}"
             f"<h2>Forecast</h2><p>{esc(fc)}</p>"
             f"<h2>Next actions</h2><ol>{''.join(f'<li>{esc(a)}</li>' for a in next_actions(g, 3, p)) or '<li class=mut>none found</li>'}</ol>"
             f"<h2>Charts</h2>{charts}"
