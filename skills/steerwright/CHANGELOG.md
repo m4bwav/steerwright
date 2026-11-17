@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261116-1 · 2026-11-16 · 0.6.0: project page shows who is running and links askwright and grindwright
+- because: user request 2026-11-16 (running-agents: Jennifer wants to see every agent at work in a project before she starts one; one click between the plugins' project pages)
+- files: scripts/sw.py (askwright_project, askwright_page_links, who_is_running, project_page, askwright_projects), tests/test_sw.py
+A project page has a Who is running section from askwright's agents.py (status, task, branch and folder, evidence; a failed read or missing askwright says so instead of an empty list) and links to the matching askwright project page and grindwright page when the askwright hub answers. askwright project records get their slug from the file name.
+
 ### C-20261114-1 · 2026-11-14 · 0.5.1: apply-review marks the review set used in askwright
 - because: askwright's answer sweep (askwright 0.31.0) found all six applied 2026-11-09 weekly reviews still listed as unprocessed: apply-review wrote applied.json but never ran `ask.py consume`, so the week warning kept naming them
 - files: scripts/sw.py (mark_consumed), tests/test_sw.py
