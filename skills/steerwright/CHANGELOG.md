@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261119-7 · 2026-11-19 · sw.py tidy: leftover scan, dry run
+because: inbox chain step E (ai-docs/plans/inbox-design.md).
+files: scripts/tidy.py, scripts/sw.py, SKILL.md, tests/test_tidy.py.
+New `sw.py tidy` lists leftover worktrees, wt folders, branches, local servers and scratch folders, each safe, ask or keep with the reason and an undo note. It deletes and kills nothing.
+
 ### C-20261119-6 · 2026-11-19 · 0.8.1: inbox code reloads after a plugin update
 - because: 0.8.0 installed but askwright's long-lived server kept 0.7.2's inbox module (sys.modules cache), so the page showed no buttons
 - files: scripts/sw.py (sibling_module), tests/test_inbox.py

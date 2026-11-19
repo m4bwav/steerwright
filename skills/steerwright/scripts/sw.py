@@ -22,6 +22,7 @@ grindwright state: this script never writes their files.
   sw.py merge NAME... --into NAME             fold projects into one (a group counts once against the WIP limit)
   sw.py serve [--port P] [--own] [--detach] [--open]  pages inside askwright's server when installed, else its own
   sw.py inbox [--json] [--fresh] [--source S]  everything waiting on Mark across tools (read-only, cached 15 min)
+  sw.py tidy [--json] [--all] [--only K]      dry run: leftover worktrees, branches, servers, scratch, each safe/ask/keep with why
   sw.py up | down                            start steerwright + askwright dashboard, build chain/grind indexes, open;
                                               down stops only the PIDs up started
 """
@@ -1702,6 +1703,8 @@ def main(argv=None):
     s = sub.add_parser("down"); s.set_defaults(fn=cmd_down)
     s = sub.add_parser("inbox"); s.add_argument("--json", action="store_true"); s.add_argument("--fresh", action="store_true"); s.add_argument("--source", action="append", help="one collector only (repeatable)")
     s.set_defaults(fn=lambda a: sibling_module("inbox").cmd_inbox(a))
+    s = sub.add_parser("tidy"); s.add_argument("--json", action="store_true"); s.add_argument("--all", action="store_true", help="show kept items too"); s.add_argument("--only", action="append", help="worktrees, branches, servers or scratch (repeatable)"); s.add_argument("--apply", action="store_true")
+    s.set_defaults(fn=lambda a: sibling_module("tidy").cmd_tidy(a))
     s = sub.add_parser("shortcut"); s.set_defaults(fn=lambda a: print(json.dumps({"shortcut": str(write_shortcut())})))
     a = ap.parse_args(argv)
     a.fn(a)
