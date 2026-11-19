@@ -62,6 +62,18 @@ class Inbox(unittest.TestCase):
         body = sw.render("/inbox", "quick=1")[1]
         self.assertNotIn("Clears in under", body)  # the lane is the page itself here
 
+    def test_clear_buttons_use_owning_tools(self):
+        ah = sw.sib_home("askwright")
+        write(ah / "dashboard" / "server.json", json.dumps({"dashboard_url": "http://127.0.0.1:47631/"}))
+        write(ah / "sessions" / ("ab12cd34ef56" + "0" * 52 + ".json"), json.dumps({"path": SET}))
+        body = sw.render("/inbox", "fresh=1&source=ask", "/steer")[1]
+        self.assertIn("href='http://127.0.0.1:47631/s/ab12cd34ef56/'", body)  # the set's page on askwright's server
+        self.assertIn("ask.py&quot; consume &quot;%s&quot;" % SET, body)  # copyable verb, steerwright never runs it
+        self.assertIn("dismiss", body)
+        body = sw.render("/inbox", "source=prs")[1]
+        self.assertIn(">Open</a>", body)
+        self.assertNotIn("consume", body)
+
     def test_inbox_loads_when_sw_is_loaded_by_path(self):
         # askwright's server loads sw.py by file path under another name, with its folder off sys.path
         import subprocess

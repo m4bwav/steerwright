@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261119-5 · 2026-11-19 · 0.8.0: one-click clearing on the inbox page
+- because: inbox step D: clear an item through the tool that owns it, without steerwright writing that tool's state
+- files: scripts/inbox.py (ask_urls, clear_controls), SKILL.md, tests/test_inbox.py
+Rows get an Open button (PR link, or the set's /s/<key>/ page read from askwright's session records and dashboard server.json) and copy buttons for `ask.py consume` and `ask.py dismiss`. The under-2-minutes lane now follows the filters.
+
 ### C-20261119-4 · 2026-11-19 · 0.7.2: inbox page loads when sw.py is not in sys.modules
 - because: 0.7.1 still gave 500 live (KeyError 'steerwright_mounted'): askwright execs sw.py without registering the module
 - files: scripts/sw.py (sibling_module), tests/test_inbox.py
