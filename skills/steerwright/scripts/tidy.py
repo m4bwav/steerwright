@@ -1,10 +1,12 @@
 """steerwright tidy: leftovers sessions left behind, each with a verdict and the reason. Stdlib only.
 
-Dry run only: it lists, it never deletes or kills. Verdicts:
+`sw.py tidy` lists; `--apply` removes only items whose fresh verdict is safe, rechecked just before each step.
+Verdicts:
   safe  removable with no loss (merged and clean, an empty folder, a stale record), undo note kept
   ask   might be leftover, but only Mark can say (unmerged files, a server this tool did not start)
   keep  in use or holding work (uncommitted changes, unmerged commits, young, a known keeper)
-Servers are found by PID through quirkwright's `qw.py pid`, never by image name.
+Servers are found by PID through quirkwright's `qw.py pid`, never by image name, and apply never stops one.
+Apply never touches a remote, never uses --force on a worktree, and logs every step with its undo note.
 """
 import json
 import os
@@ -128,7 +130,7 @@ def scan_worktrees(cfg):
             elif ref and git(p, "merge-base", "--is-ancestor", "HEAD", ref)[0] == 0:
                 out.append(item("worktree", title, "safe", "clean and merged into %s" % ref, **base))
             elif branch and upstream_gone(p, branch) and pr_merged(p, branch):
-                out.append(item("worktree", title, "safe", "clean; its PR was merged and the remote branch is gone", **base))
+                out.append(item("worktree", title, "safe", "clean; its PR was merged and the remote branch is gone", force=True, **base))
             else:
                 out.append(item("worktree", title, "keep", "commits not on %s" % (ref or "the default branch"), **base))
     for r in cfg["roots"]:
@@ -180,7 +182,7 @@ def scan_branches(cfg):
         verdicts = list(ex.map(lambda g: pr_merged(g[0], g[3]["branch"]), gone))
     for (repo, ref, title, base), merged_pr in zip(gone, verdicts):
         if merged_pr:
-            out.append(item("branch", title, "safe", "its PR was merged and the remote branch is gone (git branch -D)", **base))
+            out.append(item("branch", title, "safe", "its PR was merged and the remote branch is gone (git branch -D)", force=True, **base))
         else:
             out.append(item("branch", title, "ask", "remote branch gone, commits not on %s, no merged PR found" % ref, **base))
     return out
@@ -298,9 +300,97 @@ def scan(only=None):
     return {"generated": sw.now_iso(), "dry_run": True, "counts": counts, "items": items, "notes": notes}
 
 
+# ---------- apply ----------
+
+def only_junk(d):
+    return not any(f.is_file() and not JUNK_DIRS & set(f.relative_to(d).parts) for f in d.rglob("*"))
+
+
+def apply_one(i, cfg):
+    """Carry out one safe item after rechecking it. Returns (ok, what happened)."""
+    k, p = i["kind"], Path(i["path"]) if i.get("path") else None
+    if k == "worktree":
+        repo = i["repo"]
+        if p.exists():
+            code, dirty = git(p, "status", "--porcelain")
+            if code != 0 or dirty:
+                return False, "changed since the scan (dirty or unreadable); left alone"
+            code, _ = git(repo, "worktree", "remove", str(p))  # no --force: git refuses dirty or locked trees
+            if code != 0:
+                return False, "git worktree remove refused"
+        else:
+            git(repo, "worktree", "prune")
+        if i.get("branch"):
+            code, _ = git(repo, "branch", "-D" if i.get("force") else "-d", i["branch"])
+            return True, "worktree removed" + ("; branch deleted" if code == 0 else "; branch kept (git refused)")
+        return True, "worktree removed"
+    if k == "branch":
+        code, _ = git(i["repo"], "branch", "-D" if i.get("force") else "-d", i["branch"])
+        return (True, "branch deleted") if code == 0 else (False, "git branch refused")
+    if k == "folder":
+        if (p / ".git").exists() or not only_junk(p):
+            return False, "files appeared since the scan; left alone"
+        shutil.rmtree(p)
+        return True, "empty folder removed"
+    if k == "record":
+        rec = sw.read_json(p, None)
+        if rec and rec.get("pid") and pid_alive(int(rec["pid"])):
+            return False, "the pid is running again; kept"
+        p.unlink(missing_ok=True)
+        return True, "stale record removed"
+    if k == "scratch":
+        gone = 0
+        for f in i.get("folders") or []:
+            f = Path(f)
+            if f.parent == p and (age(f) or 0) >= cfg["scratch_days"]:
+                shutil.rmtree(f, ignore_errors=True)
+                gone += not f.exists()
+        return True, "%d session folders removed" % gone
+    return False, "no apply step for %s" % k
+
+
+def apply(only=None):
+    """Fresh scan, then each safe item in turn. Every step goes to tidy-log.jsonl with its undo note."""
+    cfg = config()
+    out = scan(only=only)
+    log = sw.home() / "tidy-log.jsonl"
+    done = []
+    for i in out["items"]:
+        if i["verdict"] != "safe":
+            continue
+        try:
+            ok, what = apply_one(i, cfg)
+        except Exception as e:  # one failure never stops the rest
+            ok, what = False, "error: %s" % str(e)[:200]
+        row = {"at": sw.now_iso(), "kind": i["kind"], "title": i["title"], "path": i.get("path"), "ok": ok,
+               "what": what, "undo": i.get("undo")}
+        with open(log, "a", encoding="utf-8", newline="\n") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        done.append(row)
+    return {"applied": done, "notes": out["notes"], "log": str(log)}
+
+
+def apply_allowed():
+    return bool((sw.read_json(sw.home() / "config.json", {}) or {}).get("tidy_apply_ok"))
+
+
 def cmd_tidy(a):
     if a.apply:
-        raise SystemExit("tidy --apply is not built yet; this is a dry run tool for now")
+        if not apply_allowed():
+            raise SystemExit("tidy --apply is off until Mark has seen the dry run and said yes. "
+                             "Then set tidy_apply_ok to true in %s." % (sw.home() / "config.json"))
+        res = apply(only=a.only)
+        if a.json:
+            print(json.dumps(res, indent=1, ensure_ascii=False))
+            return
+        ok = sum(r["ok"] for r in res["applied"])
+        print("applied: %d done, %d left alone; log %s" % (ok, len(res["applied"]) - ok, res["log"]))
+        for r in res["applied"]:
+            if not r["ok"]:
+                print("left  %-8s %-60s %s" % (r["kind"], r["title"][:60], r["what"]))
+        for n in res["notes"]:
+            print("note: " + n)
+        return
     out = scan(only=a.only)
     if a.json:
         print(json.dumps(out, indent=1, ensure_ascii=False))

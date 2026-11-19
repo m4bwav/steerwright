@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261119-8 · 2026-11-19 · 0.9.0: sw.py tidy --apply
+because: inbox chain step F (ai-docs/plans/inbox-design.md).
+files: scripts/tidy.py, scripts/sw.py, SKILL.md, tests/test_tidy.py.
+`tidy --apply` removes only safe items, rechecking each first, and logs every step with its undo note to tidy-log.jsonl. It stays off until Mark sets tidy_apply_ok after seeing the dry run.
+
 ### C-20261119-7 · 2026-11-19 · sw.py tidy: leftover scan, dry run
 because: inbox chain step E (ai-docs/plans/inbox-design.md).
 files: scripts/tidy.py, scripts/sw.py, SKILL.md, tests/test_tidy.py.
