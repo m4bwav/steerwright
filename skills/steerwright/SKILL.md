@@ -22,6 +22,7 @@ Script: `scripts/sw.py` (Python 3.9+, standard library). Registry: `~/.steerwrig
 | Close or park by hand | `sw.py table NAME [--revisit DATE] [--wake "..."]` (no date: tabled indefinitely, never wakes on its own), `sw.py abandon NAME --why ... --keep ...`, `sw.py done NAME`, `sw.py activate NAME` |
 | Parking lot | `sw.py park NAME --lot LOT [--note "where it stands"]`: work at a good-enough cut that may be picked up again (finished films and the like). Shown on the Parking lot tab (`/parking`, one sub-tab per lot), outside the WIP count and the stall reviews; `sw.py activate NAME` picks one back up. |
 | Limits | `sw.py wip [N]` (Mark: 8), `sw.py stall [WEEKS]` (Mark: 8) |
+| What waits on Mark | `sw.py inbox [--json] [--fresh] [--source NAME]`: PRs, askwright sets (unanswered, answers unused), grindwright WAITING.md, HANDOFF "Waiting on Mark" bullets, backlog `#needs-mark` lines, stopped chains, evergreen due. Read-only, cached 15 min in `inbox-cache.json`, each collector fails soft with a note. Backlog folders: `inbox_backlogs` in config.json |
 | Pages | `sw.py up` starts steerwright, askwright and the chainwright/grindwright indexes and opens the main page; `sw.py down` stops only what `up` started; `sw.py shortcut` writes a desktop `.cmd` |
 
 ## Weekly review

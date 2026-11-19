@@ -21,7 +21,8 @@ grindwright state: this script never writes their files.
   sw.py stall [WEEKS]                         show or set the stall rule for reviews (default 8 weeks)
   sw.py merge NAME... --into NAME             fold projects into one (a group counts once against the WIP limit)
   sw.py serve [--port P] [--own] [--detach] [--open]  pages inside askwright's server when installed, else its own
-  sw.py up | down                             start steerwright + askwright dashboard, build chain/grind indexes, open;
+  sw.py inbox [--json] [--fresh] [--source S]  everything waiting on Mark across tools (read-only, cached 15 min)
+  sw.py up | down                            start steerwright + askwright dashboard, build chain/grind indexes, open;
                                               down stops only the PIDs up started
 """
 import argparse
@@ -1668,6 +1669,8 @@ def main(argv=None):
     s = sub.add_parser("serve"); s.add_argument("--port", type=int); s.add_argument("--own", action="store_true", help="its own server, not inside askwright's"); s.add_argument("--detach", action="store_true"); s.add_argument("--open", action="store_true"); s.set_defaults(fn=cmd_serve)
     s = sub.add_parser("up"); s.add_argument("--no-open", action="store_true"); s.set_defaults(fn=cmd_up)
     s = sub.add_parser("down"); s.set_defaults(fn=cmd_down)
+    s = sub.add_parser("inbox"); s.add_argument("--json", action="store_true"); s.add_argument("--fresh", action="store_true"); s.add_argument("--source", action="append", help="one collector only (repeatable)")
+    s.set_defaults(fn=lambda a: __import__("inbox").cmd_inbox(a))
     s = sub.add_parser("shortcut"); s.set_defaults(fn=lambda a: print(json.dumps({"shortcut": str(write_shortcut())})))
     a = ap.parse_args(argv)
     a.fn(a)
