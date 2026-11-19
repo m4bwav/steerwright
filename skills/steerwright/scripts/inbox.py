@@ -12,7 +12,7 @@ import re
 import subprocess
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import sw
@@ -252,7 +252,73 @@ def collect(only=None, fresh=False):
            "minutes": sum(i["minutes"] for i in items), "items": items, "notes": notes, "cached": False}
     if not only:
         sw.write_json(cache, out)
+        record_history(out)
     return out
+
+
+# ---------- age and load metrics ----------
+
+def median(xs):
+    xs = sorted(xs)
+    if not xs:
+        return None
+    m = len(xs) // 2
+    return xs[m] if len(xs) % 2 else round((xs[m - 1] + xs[m]) / 2, 1)
+
+
+def stat(items):
+    return {"count": len(items), "minutes": sum(i["minutes"] for i in items),
+            "median_age": median([i["age_days"] for i in items if i["age_days"] is not None])}
+
+
+def snapshot(out):
+    """One line of inbox history: totals, and per project counts, minutes and median age."""
+    per = {}
+    for i in out["items"]:
+        per.setdefault(i["project"] or "-", []).append(i)
+    return dict(stat(out["items"]), date=sw.today().isoformat(), projects={k: stat(v) for k, v in per.items()})
+
+
+def record_history(out):
+    """Append today's snapshot to inbox-history.jsonl; a later run the same day replaces it."""
+    path = sw.home() / "inbox-history.jsonl"
+    snap = snapshot(out)
+    rows = [r for r in sw.read_jsonl(path) if r.get("date") != snap["date"]] + [snap]
+    path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+
+
+def metrics(out, weeks=12, project=None):
+    """Weekly series: decisions waiting, Mark-minutes queued and median age at each week's last snapshot.
+    Weeks with no snapshot are backfilled from today's items' ages (items still open then; a lower bound)."""
+    hist = {}
+    for r in sw.read_jsonl(sw.home() / "inbox-history.jsonl"):
+        try:
+            d = datetime.strptime(r.get("date") or "", "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        hist[sw.week_start(d)] = r  # rows are in date order, so each week keeps its last one
+    items = [i for i in out["items"] if project is None or (i["project"] or "-") == project]
+    now = sw.today()
+    rows = []
+    for k in range(weeks - 1, -1, -1):
+        ws = sw.week_start(now) - timedelta(weeks=k)
+        r = hist.get(ws)
+        if r and project is not None:
+            r = (r.get("projects") or {}).get(project) or {"count": 0, "minutes": 0, "median_age": None}
+        if r:
+            rows.append({"week": ws.isoformat(), "count": r["count"], "minutes": r["minutes"],
+                         "median_age": r.get("median_age"), "source": "snapshot"})
+            continue
+        back = (now - min(ws + timedelta(days=6), now)).days
+        then = [dict(i, age_days=round(i["age_days"] - back, 1)) for i in items
+                if i["age_days"] is not None and i["age_days"] >= back]
+        rows.append(dict(stat(then), week=ws.isoformat(), source="backfill"))
+    return rows
+
+
+def per_project(out):
+    """Today's load per project, heaviest first."""
+    return sorted(snapshot(out)["projects"].items(), key=lambda kv: (-kv[1]["minutes"], kv[0]))
 
 
 def review_summary(key, aged_days=None):
@@ -288,6 +354,16 @@ def review_summary(key, aged_days=None):
 
 def cmd_inbox(a):
     out = collect(only=a.source, fresh=a.fresh)
+    if getattr(a, "metrics", False):
+        m = {"weeks": metrics(out), "projects": dict(per_project(out))}
+        if a.json:
+            print(json.dumps(m, indent=1, ensure_ascii=False))
+            return
+        for w in m["weeks"]:
+            print("%s  %4d waiting  %5d min  median %s d  (%s)" % (w["week"], w["count"], w["minutes"], w["median_age"], w["source"]))
+        for k, v in m["projects"].items():
+            print("  %-28s %4d  %5d min  median %s d" % (k[:28], v["count"], v["minutes"], v["median_age"]))
+        return
     if a.json:
         print(json.dumps(out, indent=1, ensure_ascii=False))
         return
@@ -333,6 +409,25 @@ def clear_controls(i, urls):
 # ---------- page ----------
 
 QUICK_MINUTES = 2
+
+
+def load_section(out, names):
+    """Age and load: weekly charts and today's per project table, folded under the tiles."""
+    esc = sw.esc
+    m = metrics(out)
+    labels = [w["week"] for w in m]
+    back = sum(1 for w in m if w["source"] == "backfill")
+    charts = ("<div class='charts'>"
+              + sw.svg_bars([w["count"] for w in m], labels, title="Decisions waiting on you, per week")
+              + sw.svg_lines([("Mark-minutes", [w["minutes"] for w in m])], labels, title="Mark-minutes queued")
+              + sw.svg_lines([("median age", [w["median_age"] or 0 for w in m])], labels, title="Median age of waiting items (days)")
+              + "</div>")
+    rows = "".join(f"<tr><td>{esc(names.get(k, 'no project' if k == '-' else k))}</td><td>{v['count']}</td><td>{v['minutes']}</td>"
+                   f"<td>{v['median_age'] if v['median_age'] is not None else '?'}</td></tr>" for k, v in per_project(out))
+    return (f"<details><summary>Age and load per week and per project</summary>{charts}"
+            f"<p class='mut'>{back} of {len(m)} weeks are backfilled from today's ages, so items cleared since are missing there; "
+            f"the rest are daily snapshots in inbox-history.jsonl.</p>"
+            f"<table><tr><th>Project</th><th>Waiting</th><th>Mark-minutes</th><th>Median age (d)</th></tr>{rows}</table></details>")
 
 
 def inbox_page(data, q):
@@ -401,6 +496,7 @@ def inbox_page(data, q):
             + f"<nav class='tabs'>{chips('project', counts('project'))}</nav>"
             + f"<nav class='tabs'>{chips('kind', counts('kind'))}</nav>"
             + f"<nav class='tabs'>{chips('source', counts('source'))}</nav>"
+            + load_section(out, names)
             + lane
             + ("".join(f"<h2>{esc(names.get(p, 'no project' if p == '-' else p))} &middot; {esc(k)} ({len(groups[(p, k)])})</h2>"
                        f"<table>{head}" + "".join(row(i) for i in groups[(p, k)]) + "</table>" for p, k in order)
