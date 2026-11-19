@@ -1,6 +1,6 @@
 ---
 name: steerwright
-description: "Project management for one maker with many projects: keeps a registry of every project (software, game, film, music, art, writing), shows local pages with health, burn-up, cumulative flow, throughput, aging work and a Monte Carlo forecast over askwright, chainwright and grindwright state, and runs weekly keep / table / abandon reviews on askwright pages so each project ends as done, tabled or abandoned. Use on 'how are my projects doing', 'what's my portfolio look like', 'review my projects', 'should I table X', 'how do I get X unstuck', 'when will X be done', 'too many projects', 'start the dashboards', 'add a milestone or risk', or any project management question (Gantt, PERT, Scrum, Kanban, Shape Up, flow metrics, rituals, PM history and terms). Not for picking the next game task (grindwright) or chaining sessions (chainwright)."
+description: "Project management for one maker with many projects: a registry of every project, local pages with health, flow charts and Monte Carlo forecasts, weekly keep / table / abandon reviews on askwright pages, an inbox of everything waiting on the user, and a safe cleanup of leftover worktrees, branches and servers. Use on 'how are my projects doing', 'review my projects', 'should I table X', 'when will X be done', 'too many projects', 'what is waiting on me', 'clean up leftover worktrees', or any project management question (Gantt, Kanban, Shape Up, flow metrics). Not for picking the next game task (grindwright) or chaining sessions (chainwright)."
 ---
 
 # Steerwright

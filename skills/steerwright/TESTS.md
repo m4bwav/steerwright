@@ -8,3 +8,11 @@
 - observed: `status` in a scratch home showed "asks 4" (open askwright questions read from the real askwright home); review said "No progress for unknown days" for a project with no history.
 - worth (lite): UNPROVEN, listing ~211 tokens, body ~1,143; worth looks for evals/ inside the skill folder and found none (the suite lives at repo-root evals/).
 - led to: none
+
+## T-20261119-1
+- harness: evergreen-tester subagents, one run per case, read-only (same proxy as T-20261109-1). Description edited in this PR; runs saw the installed 0.9.0 text.
+- passed 3/3: trigger-inbox (`sw.py inbox`: 116 waiting, 746 min), trigger-tidy (`sw.py tidy` dry run only: 4202 safe, 20 ask, 72 keep; nothing deleted, apply gate quoted), decoy-dependabot (everkeep only).
+- baseline arms (skill absent): inbox found ~8 items from a HANDOFF grep plus `gh search prs` (~12.8k noisy tokens; no askwright, chains or backlogs; could not tell stale from open). Tidy found 151 worktrees and judged them by ancestry and PR state, but had no liveness check, no gone-branch or server or scratch view, and no log or undo.
+- observed: steerwright is parked in the user CLAUDE.md, so the agents read SKILL.md instead of calling the Skill tool. Trigger evidence is the sw.py call.
+- worth: UNPROVEN by the script (no `worth --ab` run); the manual baseline arms favour KEEP. tokenwright: description cut from 958 to 651 chars.
+- not covered: 3 runs per case, `worth --ab`.
