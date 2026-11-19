@@ -37,6 +37,7 @@ import subprocess
 import sys
 import threading
 import time
+import types
 import urllib.parse
 import urllib.request
 import webbrowser
@@ -44,7 +45,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.7.1"
+VERSION = "0.7.2"
 STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -951,12 +952,18 @@ def project_page(key, p):
 
 def sibling_module(name):
     """A module next to this file. askwright loads sw.py by path under another name, so the folder may be off
-    sys.path and `import sw` inside the sibling would load a second copy: register this one as sw first."""
+    sys.path and off sys.modules: hand the sibling this module as `sw`."""
     here = str(Path(__file__).resolve().parent)
     if here not in sys.path:
         sys.path.insert(0, here)
-    sys.modules.setdefault("sw", sys.modules[__name__])
-    return importlib.import_module(name)
+    me = sys.modules.get(__name__)
+    if me is None or me.__dict__ is not globals():  # askwright execs sw.py without registering it
+        me = types.ModuleType("sw")
+        me.__dict__.update(globals())
+    sys.modules.setdefault("sw", me)
+    mod = importlib.import_module(name)
+    mod.sw = me  # after a reload of sw.py the sibling uses the new code
+    return mod
 
 
 ROOT_LINK = re.compile(r"""((?:href|src|action)=['"])/(?!/)""")
