@@ -30,7 +30,7 @@ Script: `scripts/sw.py` (Python 3.9+, standard library), with `scripts/inbox.py`
 ## Weekly review
 
 Manual only (Mark's ruling). For each active project, quietest first when over the WIP limit:
-1. `sw.py review NAME`. It flags kill criteria: no progress for `stall_weeks`, 85 % forecast past the target, over the WIP limit, no definition of done, open asks. Its guess is low confidence.
+1. `sw.py review NAME`. It flags kill criteria: no progress for `stall_weeks`, 85 % forecast past the target, over the WIP limit, no definition of done, open asks. Its guess is low confidence. The findings page also lists what waits on Mark for this project and across all of them (oldest three, how many are older than `inbox_aged_days`, default 14) and the last tidy dry run's counts (read from `tidy-summary.json`, which every full `sw.py tidy` writes). It adds no questions.
 2. Tell Mark the set is up. Never fill an unanswered question with the guess.
 3. Later, `sw.py apply-review`. Keep stores the next three actions; table writes revisit date and wake condition (no date, or "Table indefinitely": parked with no wake date); abandon writes the post-mortem; then harvest anything reusable from an abandoned project into the right plugin or note.
 

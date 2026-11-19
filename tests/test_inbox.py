@@ -131,6 +131,23 @@ class Inbox(unittest.TestCase):
         self.assertEqual(len(out["items"]), 1)
         self.assertEqual(out["items"][0]["project"], "proj")
 
+    def test_weekly_review_shows_waiting_and_leftovers(self):
+        sw.write_json(sw.home() / "tidy-summary.json", {"generated": "2026-11-19T08:00:00", "counts": {"safe": 4, "ask": 2, "keep": 1}})
+        quiet(["review", "proj", "--no-serve"])
+        q = json.loads(next((sw.home() / "reviews").glob("steer-proj-*/questions.json")).read_text(encoding="utf-8"))
+        self.assertEqual([x["id"] for x in q["questions"]], ["decision", "next", "wake", "postmortem"])  # no new questions
+        text = q["questions"][0]["one_pager"][-1]["text"]
+        self.assertIn("This project: ", text)
+        self.assertIn("Pick a banner", text)
+        self.assertRegex(text, r"All projects: \d+ waiting, about \d+ minutes; \d+ older than 14 days")
+        self.assertIn("4 safe to remove, 2 need you", text)
+
+    def test_review_survives_a_broken_inbox(self):
+        with unittest.mock.patch.object(inbox, "collect", side_effect=RuntimeError("boom")):
+            text = inbox.review_summary("proj")["text"]
+        self.assertIn("Inbox unavailable: boom", text)
+        self.assertIn("no tidy dry run yet", text)
+
 
 if __name__ == "__main__":
     unittest.main()
