@@ -2,12 +2,17 @@
 
 Every change to SKILL.md and its companions, newest first, each with the reason. Reasons cite findings in [RESEARCH.md](RESEARCH.md) (`R-`) and lessons in [LEARNINGS.md](LEARNINGS.md) (`L-`). State in `evergreen.json`. Protocol: MAINTENANCE.md.
 
-Entry shape: `### C-20261119-1 · 2026-11-19 · inbox collectors (`sw.py inbox`)
+Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
+
+### C-20261119-2 · 2026-11-19 · 0.7.0: inbox page (`/steer/inbox`)
+- because: user request 2026-11-19 (inbox chain step C)
+- files: scripts/inbox.py (inbox_page), scripts/sw.py (route, tab), SKILL.md, tests/test_inbox.py
+A Waiting on you tab and page: oldest first, grouped by project and kind, filter chips for project, kind and source, a lane of items that clear in under 2 minutes, counts in the tab from the cache only.
+
+### C-20261119-1 · 2026-11-19 · inbox collectors (`sw.py inbox`)
 - because: user request 2026-11-19 (one place for everything waiting on Mark; survey in ai-docs/notes/inbox-sources.md)
 - files: scripts/inbox.py, scripts/sw.py, SKILL.md, tests/test_inbox.py
-New read-only `sw.py inbox` gathers eight sources into one normalised list mapped to registry projects. Unreleased; ships with the inbox page.
-
-### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
+New read-only `sw.py inbox` gathers eight sources into one normalised list mapped to registry projects. Released in 0.7.0.
 
 ### C-20261116-1 · 2026-11-16 · 0.6.0: project page shows who is running and links askwright and grindwright
 - because: user request 2026-11-16 (running-agents: Jennifer wants to see every agent at work in a project before she starts one; one click between the plugins' project pages)

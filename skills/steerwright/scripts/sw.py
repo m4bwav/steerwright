@@ -43,7 +43,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.5.0"
+VERSION = "0.7.0"
 STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -805,8 +805,11 @@ LIVE = ("wake", "red", "amber", "green")  # health bands shown by default; table
 
 def tabs(on, data):
     n = sum(1 for p in data["projects"].values() if p.get("status") == "parked")
+    c = read_json(home() / "inbox-cache.json", None) or {}  # the cache only: the tab never runs the collectors
+    waiting = f" ({c['count']}, ~{c.get('minutes', 0)} min)" if "count" in c else ""
     return (f"<nav class='tabs'><a href='/' class='{'on' if on == 'projects' else ''}'>Projects</a>"
-            f"<a href='/parking' class='{'on' if on == 'parking' else ''}'>Parking lot ({n})</a></nav>")
+            f"<a href='/parking' class='{'on' if on == 'parking' else ''}'>Parking lot ({n})</a>"
+            f"<a href='/inbox' class='{'on' if on == 'inbox' else ''}'>Waiting on you{waiting}</a></nav>")
 
 
 def parking_page(data, lot=None):
@@ -965,6 +968,9 @@ def _render(path, query):
             return 200, main_page(data, show_all=q.get("all", ["0"])[0] not in ("0", "")), HTML
         if path == "/parking":
             return 200, parking_page(data, q.get("lot", [None])[0]), HTML
+        if path == "/inbox":
+            import inbox
+            return 200, inbox.inbox_page(data, q), HTML
         if path in ("/favicon.svg", "/favicon.ico"):
             return 200, FAVICON, "image/svg+xml"
         if path == "/ping":

@@ -50,6 +50,23 @@ class Inbox(unittest.TestCase):
     def tearDown(self):
         self.env.__exit__()
 
+    def test_page_groups_filters_and_mounts(self):
+        code, body, ctype = sw.render("/inbox", "fresh=1", "/steer")
+        self.assertEqual(code, 200)
+        self.assertIn("Pick a banner", body)
+        self.assertIn("href='/steer/inbox?project=proj'", body)  # filter links live under the mount
+        self.assertIn("Clears in under 2 minutes", body)
+        body = sw.render("/inbox", "kind=go-ahead")[1]
+        self.assertIn("OK to publish", body)
+        self.assertNotIn("Pick a banner", body)
+        body = sw.render("/inbox", "quick=1")[1]
+        self.assertNotIn("Clears in under", body)  # the lane is the page itself here
+
+    def test_tab_counts_from_cache_only(self):
+        self.assertNotIn("Waiting on you (", sw.render("/")[1])  # no cache yet, collectors not run
+        inbox.collect(fresh=True)
+        self.assertRegex(sw.render("/")[1], r"Waiting on you \(\d+, ~\d+ min\)")
+
     def test_collects_normalises_and_maps(self):
         out = inbox.collect(fresh=True)
         src = sorted(i["source"] for i in out["items"])

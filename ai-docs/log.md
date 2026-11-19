@@ -95,3 +95,4 @@ At the owner's request: a README "Works with" section, each entry naming the rea
 - 2026-11-19: inbox + leftover-cleanup chain prompt written (ai-docs/plans/steerwright-inbox-continue-prompt.md, state ai-docs/inbox/HANDOFF.md), up to 20 sessions.
 - 2026-11-19: inbox step A survey done: ai-docs/notes/inbox-sources.md, design note ai-docs/plans/inbox-design.md. Next: collectors.
 - 2026-11-19: inbox step B merged (PR #6): `sw.py inbox` read-only collectors in scripts/inbox.py, 22 tests pass. Lesson: `gh search prs --label X` with no owner searches all of GitHub. Next: C inbox page.
+- 2026-11-19: inbox step C: /steer/inbox page (Waiting on you tab), 0.7.0. 24 tests pass.

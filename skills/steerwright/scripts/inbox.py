@@ -6,6 +6,7 @@ their files, and never writes their state. Results are cached in <steerwright ho
 """
 import hashlib
 import json
+import urllib.parse
 import os
 import re
 import subprocess
@@ -264,3 +265,77 @@ def cmd_inbox(a):
         print("%s  %-14s %-22s %s" % (age, i["source"], (i["project"] or "-")[:22], i["title"][:90]))
     for n in out["notes"]:
         print("note: " + n)
+
+
+# ---------- page ----------
+
+QUICK_MINUTES = 2
+
+
+def inbox_page(data, q):
+    """/inbox: oldest first, grouped by project then kind, filters by query (project, kind, source, quick=1, fresh=1)."""
+    esc = sw.esc
+    out = collect(fresh=q.get("fresh", ["0"])[0] not in ("0", ""))
+    pick = {k: q.get(k, [""])[0] for k in ("project", "kind", "source")}
+    quick = q.get("quick", ["0"])[0] not in ("0", "")
+    items = [i for i in out["items"]
+             if (not pick["project"] or (i["project"] or "-") == pick["project"])
+             and (not pick["kind"] or i["kind"] == pick["kind"])
+             and (not pick["source"] or i["source"] == pick["source"])
+             and (not quick or i["minutes"] <= QUICK_MINUTES)]
+    names = {k: p["name"] for k, p in data["projects"].items()}
+
+    def link(**kw):
+        cur = dict(pick, quick="1" if quick else "")
+        cur.update(kw)
+        qs = urllib.parse.urlencode({k: v for k, v in cur.items() if v})
+        return "/inbox" + ("?" + qs if qs else "")
+
+    def chips(key, values):
+        on = pick.get(key, "")
+        return (f"<a class='{'on' if not on else ''}' href='{esc(link(**{key: ''}))}'>all</a>"
+                + "".join(f"<a class='{'on' if on == v else ''}' href='{esc(link(**{key: v}))}'>{esc(names.get(v, v))} ({n})</a>"
+                          for v, n in values))
+
+    def counts(field):
+        c = {}
+        for i in out["items"]:
+            v = (i[field] or "-") if field == "project" else i[field]
+            c[v] = c.get(v, 0) + 1
+        return sorted(c.items(), key=lambda kv: (-kv[1], kv[0]))
+
+    def row(i):
+        where = i["link"] or i["path"] or ""
+        target = (f"<a href='{esc(where)}'>{esc(where)}</a>" if where.startswith("http")
+                  else f"<code>{esc(where)}</code>") if where else ""
+        age = "%.1f d" % i["age_days"] if i["age_days"] is not None else "?"
+        return (f"<tr><td>{age}</td><td>{esc(i['title'])}<div class='mut'>{esc(i['source'])} &middot; {target}</div></td>"
+                f"<td>{esc(i['action'])}</td><td>{i['minutes']}</td></tr>")
+
+    groups = {}
+    for i in items:  # already oldest first; groups keep their oldest item first too
+        groups.setdefault((i["project"] or "-", i["kind"]), []).append(i)
+    order = sorted(groups, key=lambda g: -(groups[g][0]["age_days"] or 0))
+    head = "<tr><th>Age</th><th>What</th><th>Clears it</th><th>Min</th></tr>"
+    quick_items = [i for i in out["items"] if i["minutes"] <= QUICK_MINUTES]
+    lane = ("" if quick or not quick_items else
+            f"<h2>Clears in under {QUICK_MINUTES} minutes ({len(quick_items)})</h2><table>{head}"
+            + "".join(row(i) for i in quick_items[:15]) + "</table>"
+            + (f"<p><a href='{esc(link(quick='1'))}'>all {len(quick_items)}</a></p>" if len(quick_items) > 15 else ""))
+    body = (f"<div class='top'><h1>steerwright</h1><span>{sw.today()}</span><span>{sw.sibling_links()}</span></div>"
+            + sw.tabs("inbox", data)
+            + f"<div class='tiles'><div class='tile'><b>{out['count']}</b><span>waiting</span></div>"
+              f"<div class='tile'><b>{out['minutes']}</b><span>Mark-minutes</span></div>"
+              f"<div class='tile'><b>{len(quick_items)}</b><span>under {QUICK_MINUTES} min</span></div></div>"
+            + f"<p class='mut'>Built {esc(out['generated'])}{' (cached)' if out.get('cached') else ''}. "
+              f"<a href='{esc(link(fresh='1'))}'>refresh</a> &middot; <a href='{esc(link(quick='' if quick else '1'))}'>"
+              f"{'show everything' if quick else 'quick ones only'}</a></p>"
+            + "".join(f"<div class='warn'>collector failed: {esc(n)}</div>" for n in out["notes"])
+            + f"<nav class='tabs'>{chips('project', counts('project'))}</nav>"
+            + f"<nav class='tabs'>{chips('kind', counts('kind'))}</nav>"
+            + f"<nav class='tabs'>{chips('source', counts('source'))}</nav>"
+            + lane
+            + ("".join(f"<h2>{esc(names.get(p, 'no project' if p == '-' else p))} &middot; {esc(k)} ({len(groups[(p, k)])})</h2>"
+                       f"<table>{head}" + "".join(row(i) for i in groups[(p, k)]) + "</table>" for p, k in order)
+               if items else "<p class='mut'>Nothing waiting on you here.</p>"))
+    return sw.page("waiting on you: steerwright", body)
