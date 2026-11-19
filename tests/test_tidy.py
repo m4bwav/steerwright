@@ -104,6 +104,40 @@ class Tidy(unittest.TestCase):
         self.assertEqual(got["slug"]["verdict"], "safe")  # one row per project slug
         self.assertEqual([Path(f).name for f in got["slug"]["folders"]], ["old-session"])
 
+    def test_apply_needs_marks_yes(self):
+        import argparse
+        a = argparse.Namespace(apply=True, only=None, json=False, all=False)
+        with self.assertRaises(SystemExit):
+            tidy.cmd_tidy(a)
+        self.assertTrue((self.root / "proj-done").exists())
+
+    def test_apply_removes_only_safe(self):
+        write(self.d / "steer" / "config.json", json.dumps({"tidy_roots": [str(self.root)], "tidy_days": 3, "tidy_apply_ok": True}))
+        sha = git(self.repo, "rev-parse", "--short=12", "merged-branch")
+        res = tidy.apply(only=["worktrees", "branches"])
+        self.assertTrue(all(r["ok"] for r in res["applied"]), res)
+        names = sorted(p.name for p in self.root.iterdir())
+        self.assertNotIn("proj-done", names)
+        self.assertNotIn("proj-wt-empty", names)
+        for kept in ("proj-dirty", "proj-wip", "proj-wt-files", "proj"):
+            self.assertIn(kept, names)
+        self.assertTrue((self.root / "proj-dirty" / "wip.txt").exists())
+        branches = git(self.repo, "branch")
+        self.assertNotIn("merged-branch", branches)
+        self.assertNotIn(" done", branches)
+        self.assertIn("wip", branches)
+        log = (self.d / "steer" / "tidy-log.jsonl").read_text(encoding="utf-8")
+        self.assertIn(sha, log)  # undo note keeps the SHA
+        self.assertIn("origin/main", git(self.repo, "branch", "-r"))  # remote untouched
+
+    def test_apply_rechecks_before_removing(self):
+        cfg = tidy.config()
+        row = self.by_path(tidy.scan_worktrees(cfg))["proj-done"]
+        write(self.root / "proj-done" / "late.txt", "new work\n")
+        ok, what = tidy.apply_one(row, cfg)
+        self.assertFalse(ok)
+        self.assertTrue((self.root / "proj-done" / "late.txt").exists())
+
     def test_dry_run_changes_nothing(self):
         before = sorted(p.name for p in self.root.iterdir())
         out = tidy.scan(only=["worktrees", "branches"])

@@ -23,6 +23,7 @@ grindwright state: this script never writes their files.
   sw.py serve [--port P] [--own] [--detach] [--open]  pages inside askwright's server when installed, else its own
   sw.py inbox [--json] [--fresh] [--source S]  everything waiting on Mark across tools (read-only, cached 15 min)
   sw.py tidy [--json] [--all] [--only K]      dry run: leftover worktrees, branches, servers, scratch, each safe/ask/keep with why
+  sw.py tidy --apply [--only K]              remove the safe ones (after Mark's yes: tidy_apply_ok in config.json)
   sw.py up | down                            start steerwright + askwright dashboard, build chain/grind indexes, open;
                                               down stops only the PIDs up started
 """
@@ -46,7 +47,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.8.1"
+VERSION = "0.9.0"
 STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
