@@ -32,3 +32,4 @@ Status: in progress (session 14: idle until a review is due)
 
 ## Stop and ask (askwright) before
 Making the repo public, writing into another plugin's state, adding a scheduled task, publishing to any registry.
+- 2026-11-19: separate chain for the inbox feature: ai-docs/inbox/HANDOFF.md.

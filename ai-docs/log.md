@@ -92,3 +92,5 @@ At the owner's request: a README "Works with" section, each entry naming the rea
 
 ## 2026-11-13 · one server (0.5.0)
 - Mark asked for steerwright on askwright's single server, still running without askwright, and choosing another port when 47630 is taken. `render(path, query, base)` now builds every page without a server; askwright 0.29.0 mounts it at `/steer/`. `sw.py serve` registers there when askwright is installed (server.json `hosted_by: askwright`, and `down` leaves that process alone), else binds its own port exclusively (Windows SO_REUSEADDR had let it share a taken port) and falls back to a free one. Tests: OneServer (3).
+- 2026-11-19: inbox + leftover-cleanup chain prompt written (ai-docs/plans/steerwright-inbox-continue-prompt.md, state ai-docs/inbox/HANDOFF.md), up to 20 sessions.
+- 2026-11-19: inbox step A survey done: ai-docs/notes/inbox-sources.md, design note ai-docs/plans/inbox-design.md. Next: collectors.
