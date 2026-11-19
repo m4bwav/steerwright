@@ -8,3 +8,6 @@ Sources and leftovers are listed in [inbox-sources.md](../notes/inbox-sources.md
 
 ## C. Inbox page (2026-11-19)
 `/inbox` is `inbox.inbox_page()`, routed in `sw._render` and so mounted at `/steer/inbox` in askwright's server. It reads `collect()` (cached 15 minutes; `?fresh=1` reruns). Groups are (project, kind), ordered by their oldest item. Filters are query chips, so links survive the mount rewrite. The under-2-minutes lane sits on top. The tab on every page shows the count from the cache file only, so the dashboard never waits 5 s on the collectors. Unmapped items (backlog lines, PRs by repo) show as no project; mapping them stays open.
+
+## D. One-click clearing (2026-11-19)
+askwright mounts steerwright for GET only, and its POST routes need askwright's token, so steerwright cannot run a verb from the page without writing askwright's state itself. Rows therefore get Open (the PR, or the set's page on askwright's server: key is the session record's file stem, first 12 characters, base from `dashboard/server.json`) and, for answered sets, buttons that copy the exact `ask.py consume` or `ask.py dismiss` command. askwright's own Unprocessed tab also has Dismiss. Running verbs from the page would need a POST hook in askwright; left for Mark if he wants it.

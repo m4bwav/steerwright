@@ -267,6 +267,37 @@ def cmd_inbox(a):
         print("note: " + n)
 
 
+# ---------- clearing ----------
+
+def ask_urls():
+    """askwright set path -> its page on askwright's shared server, from askwright's own records. {} when it is down."""
+    ah = sw.sib_home("askwright")
+    base = (sw.read_json(ah / "dashboard" / "server.json", {}) or {}).get("dashboard_url")
+    if not base:
+        return {}
+    out = {}
+    for f in (ah / "sessions").glob("*.json"):
+        path = (sw.read_json(f, {}) or {}).get("path")
+        if path:
+            out[sw.norm(path)] = base.rstrip("/") + "/s/%s/" % f.stem[:12]
+    return out
+
+
+def clear_controls(i, urls):
+    """The owning tool's verbs for one item: an Open link, and askwright's consume and dismiss as commands to copy.
+    steerwright runs none of them; writing askwright's state stays askwright's job."""
+    esc = sw.esc
+    target = i["link"] or (urls.get(sw.norm(i["path"])) if i["source"] in ("ask", "ask-unanswered") and i["path"] else None)
+    out = f"<a class='btn' href='{esc(target)}' target='_blank'>Open</a>" if target else ""
+    if i["source"] == "ask":
+        script = sw.ask_script() or "ask.py"
+        for verb in ("consume", "dismiss"):
+            cmd = 'python "%s" %s "%s" --note ""' % (script, verb, i["path"])
+            out += (f" <button class='btn' title='{esc(cmd)}' data-cmd='{esc(cmd)}' "
+                    f"onclick='navigator.clipboard.writeText(this.dataset.cmd);this.textContent=&quot;copied&quot;'>{verb}</button>")
+    return out
+
+
 # ---------- page ----------
 
 QUICK_MINUTES = 2
@@ -284,6 +315,7 @@ def inbox_page(data, q):
              and (not pick["source"] or i["source"] == pick["source"])
              and (not quick or i["minutes"] <= QUICK_MINUTES)]
     names = {k: p["name"] for k, p in data["projects"].items()}
+    urls = ask_urls()
 
     def link(**kw):
         cur = dict(pick, quick="1" if quick else "")
@@ -310,19 +342,22 @@ def inbox_page(data, q):
                   else f"<code>{esc(where)}</code>") if where else ""
         age = "%.1f d" % i["age_days"] if i["age_days"] is not None else "?"
         return (f"<tr><td>{age}</td><td>{esc(i['title'])}<div class='mut'>{esc(i['source'])} &middot; {target}</div></td>"
-                f"<td>{esc(i['action'])}</td><td>{i['minutes']}</td></tr>")
+                f"<td>{esc(i['action'])}<div>{clear_controls(i, urls)}</div></td><td>{i['minutes']}</td></tr>")
 
     groups = {}
     for i in items:  # already oldest first; groups keep their oldest item first too
         groups.setdefault((i["project"] or "-", i["kind"]), []).append(i)
     order = sorted(groups, key=lambda g: -(groups[g][0]["age_days"] or 0))
     head = "<tr><th>Age</th><th>What</th><th>Clears it</th><th>Min</th></tr>"
-    quick_items = [i for i in out["items"] if i["minutes"] <= QUICK_MINUTES]
+    quick_items = [i for i in items if i["minutes"] <= QUICK_MINUTES]  # the lane follows the filters
     lane = ("" if quick or not quick_items else
             f"<h2>Clears in under {QUICK_MINUTES} minutes ({len(quick_items)})</h2><table>{head}"
             + "".join(row(i) for i in quick_items[:15]) + "</table>"
             + (f"<p><a href='{esc(link(quick='1'))}'>all {len(quick_items)}</a></p>" if len(quick_items) > 15 else ""))
-    body = (f"<div class='top'><h1>steerwright</h1><span>{sw.today()}</span><span>{sw.sibling_links()}</span></div>"
+    style = ("<style>.btn{display:inline-block;margin:4px 4px 0 0;padding:2px 9px;font:inherit;font-size:12px;"
+             "border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--blue);"
+             "text-decoration:none;cursor:pointer}</style>")
+    body = (style + f"<div class='top'><h1>steerwright</h1><span>{sw.today()}</span><span>{sw.sibling_links()}</span></div>"
             + sw.tabs("inbox", data)
             + f"<div class='tiles'><div class='tile'><b>{out['count']}</b><span>waiting</span></div>"
               f"<div class='tile'><b>{out['minutes']}</b><span>Mark-minutes</span></div>"
