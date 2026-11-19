@@ -7,7 +7,7 @@ description: "Project management for one maker with many projects: keeps a regis
 
 Every project should be moving, parked on purpose with a wake condition, or closed. Steerwright keeps the list, shows the evidence, and asks Mark the keep / table / abandon question. Mark decides; steerwright never changes a project's status without his answer.
 
-Script: `scripts/sw.py` (Python 3.9+, standard library). Registry: `~/.steerwright/projects.json` (override with `STEERWRIGHT_HOME`). It reads askwright, chainwright and grindwright homes and project folders and never writes them.
+Script: `scripts/sw.py` (Python 3.9+, standard library), with `scripts/inbox.py` and `scripts/tidy.py` loaded beside it. Registry: `~/.steerwright/projects.json` (override with `STEERWRIGHT_HOME`). It reads askwright, chainwright and grindwright homes and project folders and never writes them.
 
 ## Commands
 
@@ -23,6 +23,7 @@ Script: `scripts/sw.py` (Python 3.9+, standard library). Registry: `~/.steerwrig
 | Parking lot | `sw.py park NAME --lot LOT [--note "where it stands"]`: work at a good-enough cut that may be picked up again (finished films and the like). Shown on the Parking lot tab (`/parking`, one sub-tab per lot), outside the WIP count and the stall reviews; `sw.py activate NAME` picks one back up. |
 | Limits | `sw.py wip [N]` (Mark: 8), `sw.py stall [WEEKS]` (Mark: 8) |
 | What waits on Mark | `sw.py inbox [--json] [--fresh] [--source NAME]`: PRs, askwright sets (unanswered, answers unused), grindwright WAITING.md, HANDOFF "Waiting on Mark" bullets, backlog `#needs-mark` lines, stopped chains, evergreen due. Read-only, cached 15 min in `inbox-cache.json`, each collector fails soft with a note. Backlog folders: `inbox_backlogs` in config.json. Page: `/inbox` (Waiting on you tab), oldest first, grouped by project and kind, filters `?project= &kind= &source= &quick=1 &fresh=1`, an under-2-minutes lane (follows the filters). Each row has Open (the PR, or the askwright set on askwright's server) and, for answered sets, consume and dismiss buttons that copy the ask.py command; steerwright runs none of them |
+| Leftovers to clean | `sw.py tidy [--json] [--all] [--only worktrees, branches, servers or scratch]`: dry run, deletes and kills nothing. Each item is `safe` (merged and clean, empty folder, stale record; undo note with the SHA), `ask` (only Mark can say: files left in a wt folder, a gone branch with no merged PR, any local python or node server) or `keep` (dirty, unmerged, younger than `tidy_days`, a keeper port). Servers: netstat joined with quirkwright `qw.py pid`. Config: `tidy_roots`, `tidy_days` (3), `tidy_scratch_days` (7), `tidy_keep_ports` |
 | Pages | `sw.py up` starts steerwright, askwright and the chainwright/grindwright indexes and opens the main page; `sw.py down` stops only what `up` started; `sw.py shortcut` writes a desktop `.cmd` |
 
 ## Weekly review
