@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261119-6 · 2026-11-19 · 0.8.1: inbox code reloads after a plugin update
+- because: 0.8.0 installed but askwright's long-lived server kept 0.7.2's inbox module (sys.modules cache), so the page showed no buttons
+- files: scripts/sw.py (sibling_module), tests/test_inbox.py
+A sibling module is reloaded when its file is in another folder or its mtime changed.
+
 ### C-20261119-5 · 2026-11-19 · 0.8.0: one-click clearing on the inbox page
 - because: inbox step D: clear an item through the tool that owns it, without steerwright writing that tool's state
 - files: scripts/inbox.py (ask_urls, clear_controls), SKILL.md, tests/test_inbox.py

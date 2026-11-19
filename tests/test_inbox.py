@@ -84,6 +84,21 @@ class Inbox(unittest.TestCase):
         out = subprocess.run([sys.executable, "-I", "-c", code, sw.__file__], capture_output=True, text=True)
         self.assertEqual(out.stdout.strip(), "True", out.stderr)
 
+    def test_sibling_reloads_after_upgrade(self):
+        # askwright's server lives across a plugin update: a stale inbox from the old folder must not stay
+        import types
+        stale = types.ModuleType("inbox")
+        stale.__file__ = str(Path(sw.__file__).parent.parent / "old" / "inbox.py")
+        saved = sys.modules.get("inbox")
+        sys.modules["inbox"] = stale
+        try:
+            mod = sw.sibling_module("inbox")
+            self.assertIsNot(mod, stale)
+            self.assertEqual(Path(mod.__file__).resolve(), (Path(sw.__file__).parent / "inbox.py").resolve())
+            self.assertIs(sw.sibling_module("inbox"), mod)  # unchanged file: same module
+        finally:
+            sys.modules["inbox"] = saved
+
     def test_tab_counts_from_cache_only(self):
         self.assertNotIn("Waiting on you (", sw.render("/")[1])  # no cache yet, collectors not run
         inbox.collect(fresh=True)
