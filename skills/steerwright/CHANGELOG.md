@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261119-4 · 2026-11-19 · 0.7.2: inbox page loads when sw.py is not in sys.modules
+- because: 0.7.1 still gave 500 live (KeyError 'steerwright_mounted'): askwright execs sw.py without registering the module
+- files: scripts/sw.py (sibling_module), tests/test_inbox.py
+The sibling gets this module as `sw` (a snapshot module when it is not registered), reset on every call so a reload of sw.py reaches it.
+
 ### C-20261119-3 · 2026-11-19 · 0.7.1: inbox page loads inside askwright's server
 - because: /steer/inbox returned 500 (No module named 'inbox'): askwright loads sw.py by path, off sys.path
 - files: scripts/sw.py (sibling_module), tests/test_inbox.py

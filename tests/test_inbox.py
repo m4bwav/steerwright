@@ -67,8 +67,8 @@ class Inbox(unittest.TestCase):
         import subprocess
         code = ("import importlib.util,sys;p=sys.argv[1];"
                 "s=importlib.util.spec_from_file_location('steer_hosted',p);m=importlib.util.module_from_spec(s);"
-                "sys.modules['steer_hosted']=m;s.loader.exec_module(m);"
-                "print(m.sibling_module('inbox').sw is m)")
+                "s.loader.exec_module(m);"
+                "i=m.sibling_module('inbox');print(i.sw.load is m.load and i.sw.esc is m.esc)")
         out = subprocess.run([sys.executable, "-I", "-c", code, sw.__file__], capture_output=True, text=True)
         self.assertEqual(out.stdout.strip(), "True", out.stderr)
 
