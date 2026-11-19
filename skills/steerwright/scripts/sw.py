@@ -27,6 +27,7 @@ grindwright state: this script never writes their files.
 """
 import argparse
 import html
+import importlib
 import json
 import os
 import random
@@ -43,7 +44,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.7.0"
+VERSION = "0.7.1"
 STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -948,6 +949,16 @@ def project_page(key, p):
     return page(f"{p['name']}: steerwright", body)
 
 
+def sibling_module(name):
+    """A module next to this file. askwright loads sw.py by path under another name, so the folder may be off
+    sys.path and `import sw` inside the sibling would load a second copy: register this one as sw first."""
+    here = str(Path(__file__).resolve().parent)
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    sys.modules.setdefault("sw", sys.modules[__name__])
+    return importlib.import_module(name)
+
+
 ROOT_LINK = re.compile(r"""((?:href|src|action)=['"])/(?!/)""")
 
 
@@ -969,8 +980,7 @@ def _render(path, query):
         if path == "/parking":
             return 200, parking_page(data, q.get("lot", [None])[0]), HTML
         if path == "/inbox":
-            import inbox
-            return 200, inbox.inbox_page(data, q), HTML
+            return 200, sibling_module("inbox").inbox_page(data, q), HTML
         if path in ("/favicon.svg", "/favicon.ico"):
             return 200, FAVICON, "image/svg+xml"
         if path == "/ping":
@@ -1676,7 +1686,7 @@ def main(argv=None):
     s = sub.add_parser("up"); s.add_argument("--no-open", action="store_true"); s.set_defaults(fn=cmd_up)
     s = sub.add_parser("down"); s.set_defaults(fn=cmd_down)
     s = sub.add_parser("inbox"); s.add_argument("--json", action="store_true"); s.add_argument("--fresh", action="store_true"); s.add_argument("--source", action="append", help="one collector only (repeatable)")
-    s.set_defaults(fn=lambda a: __import__("inbox").cmd_inbox(a))
+    s.set_defaults(fn=lambda a: sibling_module("inbox").cmd_inbox(a))
     s = sub.add_parser("shortcut"); s.set_defaults(fn=lambda a: print(json.dumps({"shortcut": str(write_shortcut())})))
     a = ap.parse_args(argv)
     a.fn(a)

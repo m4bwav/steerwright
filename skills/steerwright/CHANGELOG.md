@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261119-3 · 2026-11-19 · 0.7.1: inbox page loads inside askwright's server
+- because: /steer/inbox returned 500 (No module named 'inbox'): askwright loads sw.py by path, off sys.path
+- files: scripts/sw.py (sibling_module), tests/test_inbox.py
+Sibling modules load through `sibling_module()`, which puts the script folder on sys.path and registers the hosted sw as `sw`.
+
 ### C-20261119-2 · 2026-11-19 · 0.7.0: inbox page (`/steer/inbox`)
 - because: user request 2026-11-19 (inbox chain step C)
 - files: scripts/inbox.py (inbox_page), scripts/sw.py (route, tab), SKILL.md, tests/test_inbox.py

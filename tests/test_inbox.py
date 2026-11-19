@@ -62,6 +62,16 @@ class Inbox(unittest.TestCase):
         body = sw.render("/inbox", "quick=1")[1]
         self.assertNotIn("Clears in under", body)  # the lane is the page itself here
 
+    def test_inbox_loads_when_sw_is_loaded_by_path(self):
+        # askwright's server loads sw.py by file path under another name, with its folder off sys.path
+        import subprocess
+        code = ("import importlib.util,sys;p=sys.argv[1];"
+                "s=importlib.util.spec_from_file_location('steer_hosted',p);m=importlib.util.module_from_spec(s);"
+                "sys.modules['steer_hosted']=m;s.loader.exec_module(m);"
+                "print(m.sibling_module('inbox').sw is m)")
+        out = subprocess.run([sys.executable, "-I", "-c", code, sw.__file__], capture_output=True, text=True)
+        self.assertEqual(out.stdout.strip(), "True", out.stderr)
+
     def test_tab_counts_from_cache_only(self):
         self.assertNotIn("Waiting on you (", sw.render("/")[1])  # no cache yet, collectors not run
         inbox.collect(fresh=True)
