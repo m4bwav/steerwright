@@ -99,3 +99,4 @@ At the owner's request: a README "Works with" section, each entry naming the rea
 - 2026-11-19: 0.7.1: /steer/inbox gave 500 in askwright's server (sw.py loaded by path, folder off sys.path); `sibling_module()` fixes it. Lesson: test a new module import with sw loaded by path.
 - 2026-11-19: 0.7.2: 0.7.1 still 500 live: askwright execs sw.py without registering it in sys.modules. sibling_module() now hands the sibling a module either way. Verified by loading sw the askwright way and rendering /inbox (200).
 - 2026-11-19: inbox step C released as 0.7.2 (PRs #7-#9), installed, /steer/inbox live. Next: D one-click clearing.
+- 2026-11-19: inbox step D released as 0.8.1 (PRs #10, #11): Open and copy-command buttons on /steer/inbox. Lesson: askwright's server outlives a plugin update; sibling modules must reload when their file moves or changes. Next: E tidy dry run.
