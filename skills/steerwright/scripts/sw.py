@@ -21,7 +21,7 @@ grindwright state: this script never writes their files.
   sw.py stall [WEEKS]                         show or set the stall rule for reviews (default 8 weeks)
   sw.py merge NAME... --into NAME             fold projects into one (a group counts once against the WIP limit)
   sw.py serve [--port P] [--own] [--detach] [--open]  pages inside askwright's server when installed, else its own
-  sw.py inbox [--json] [--fresh] [--source S]  everything waiting on Mark across tools (read-only, cached 15 min)
+  sw.py inbox [--json] [--fresh] [--source S] [--metrics]  everything waiting on Mark across tools (read-only, cached 15 min)
   sw.py tidy [--json] [--all] [--only K]      dry run: leftover worktrees, branches, servers, scratch, each safe/ask/keep with why
   sw.py tidy --apply [--only K]              remove the safe ones (after Mark's yes: tidy_apply_ok in config.json)
   sw.py up | down                            start steerwright + askwright dashboard, build chain/grind indexes, open;
@@ -47,7 +47,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.10.0"
+VERSION = "0.11.0"
 STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -921,6 +921,14 @@ def project_page(key, p):
         cum = lambda m: [sum(m.get(x, 0) for x in awk if x <= w) for w in awk]
         charts += svg_lines([("commits", cum(by["git"])), ("log entries", cum(by["log"]))], [w.isoformat() for w in awk],
                             title="Cumulative commits and log entries (no ledger; proxy for done work)")
+    try:
+        ib = sibling_module("inbox")
+        wm = ib.metrics(read_json(home() / "inbox-cache.json", None) or {"items": []}, project=key)  # cache only, never the collectors
+        if any(w["count"] for w in wm):
+            charts += svg_lines([("waiting", [w["count"] for w in wm]), ("Mark-minutes", [w["minutes"] for w in wm])],
+                                [w["week"] for w in wm], title="Waiting on you for this project, per week")
+    except Exception:  # the project page never fails on the inbox
+        pass
     charts += "</div>"
     ms = "".join(f"<tr><td>{esc(m['title'])}</td><td>{esc(m.get('date') or '-')}</td><td>{esc(m['state'])}"
                  + (" <b style='color:var(--red)'>late</b>" if m["state"] == "open" and m.get("date") and m["date"] < today().isoformat() else "")
@@ -1709,7 +1717,7 @@ def main(argv=None):
     s = sub.add_parser("serve"); s.add_argument("--port", type=int); s.add_argument("--own", action="store_true", help="its own server, not inside askwright's"); s.add_argument("--detach", action="store_true"); s.add_argument("--open", action="store_true"); s.set_defaults(fn=cmd_serve)
     s = sub.add_parser("up"); s.add_argument("--no-open", action="store_true"); s.set_defaults(fn=cmd_up)
     s = sub.add_parser("down"); s.set_defaults(fn=cmd_down)
-    s = sub.add_parser("inbox"); s.add_argument("--json", action="store_true"); s.add_argument("--fresh", action="store_true"); s.add_argument("--source", action="append", help="one collector only (repeatable)")
+    s = sub.add_parser("inbox"); s.add_argument("--json", action="store_true"); s.add_argument("--fresh", action="store_true"); s.add_argument("--source", action="append", help="one collector only (repeatable)"); s.add_argument("--metrics", action="store_true", help="weekly waiting count, Mark-minutes and median age, per project")
     s.set_defaults(fn=lambda a: sibling_module("inbox").cmd_inbox(a))
     s = sub.add_parser("tidy"); s.add_argument("--json", action="store_true"); s.add_argument("--all", action="store_true", help="show kept items too"); s.add_argument("--only", action="append", help="worktrees, branches, servers or scratch (repeatable)"); s.add_argument("--apply", action="store_true")
     s.set_defaults(fn=lambda a: sibling_module("tidy").cmd_tidy(a))

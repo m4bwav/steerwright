@@ -148,6 +148,34 @@ class Inbox(unittest.TestCase):
         self.assertIn("Inbox unavailable: boom", text)
         self.assertIn("no tidy dry run yet", text)
 
+    def test_metrics_backfill_and_snapshots(self):
+        item = lambda age, m, p: {"age_days": age, "minutes": m, "project": p}
+        out = {"items": [item(20.0, 10, "proj"), item(3.0, 2, "proj"), item(9.0, 30, None)]}
+        m = inbox.metrics(out, weeks=4)
+        self.assertEqual([w["source"] for w in m], ["backfill"] * 4)
+        self.assertEqual(m[-1]["count"], 3)  # this week: all three
+        self.assertEqual(m[-1]["median_age"], 9.0)
+        self.assertEqual(m[0]["count"], 1)  # three weeks back only the 20-day item was open
+        self.assertEqual(inbox.metrics(out, weeks=1, project="-")[0]["minutes"], 30)
+        inbox.record_history(out)
+        inbox.record_history(out)  # same day replaces, never duplicates
+        rows = sw.read_jsonl(sw.home() / "inbox-history.jsonl")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["projects"]["proj"], {"count": 2, "minutes": 12, "median_age": 11.5})
+        now = inbox.metrics({"items": []}, weeks=2)
+        self.assertEqual((now[-1]["source"], now[-1]["count"]), ("snapshot", 3))
+        self.assertEqual(inbox.metrics({"items": []}, weeks=1, project="proj")[0]["minutes"], 12)
+
+    def test_metrics_on_page_cli_and_project(self):
+        body = sw.render("/inbox", "fresh=1")[1]
+        self.assertIn("Decisions waiting on you, per week", body)
+        self.assertIn("Median age of waiting items", body)
+        self.assertTrue((sw.home() / "inbox-history.jsonl").exists())
+        self.assertIn("Waiting on you for this project", sw.render("/p/proj")[1])
+        m = json.loads(quiet(["inbox", "--metrics", "--json"]))
+        self.assertEqual(len(m["weeks"]), 12)
+        self.assertIn("proj", m["projects"])
+
 
 if __name__ == "__main__":
     unittest.main()

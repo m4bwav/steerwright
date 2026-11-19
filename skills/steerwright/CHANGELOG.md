@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261119-10 · 2026-11-19 · 0.11.0: inbox age and load metrics
+because: inbox chain step H (ai-docs/plans/inbox-design.md).
+files: scripts/inbox.py, scripts/sw.py, SKILL.md, tests/test_inbox.py.
+Each fresh inbox run keeps a daily snapshot in inbox-history.jsonl. `sw.py inbox --metrics`, a folded section on /inbox and a chart on each project page show decisions waiting per week, Mark-minutes queued and median age, per project. Weeks before the first snapshot are backfilled from today's ages.
+
 ### C-20261119-9 · 2026-11-19 · 0.10.0: inbox and tidy on the weekly review
 because: inbox chain step G (ai-docs/plans/inbox-design.md).
 files: scripts/inbox.py, scripts/tidy.py, scripts/sw.py, SKILL.md, tests/test_inbox.py, tests/test_tidy.py.
