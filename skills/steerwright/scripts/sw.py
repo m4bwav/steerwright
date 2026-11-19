@@ -47,7 +47,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.9.0"
+VERSION = "0.10.0"
 STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -644,6 +644,13 @@ def review_docs(g):
     return out
 
 
+def waiting_doc(key):
+    try:
+        return [sibling_module("inbox").review_summary(key)]
+    except Exception as e:  # a review never fails on the inbox
+        return [{"type": "text", "text": f"Waiting on you: unavailable ({str(e)[:200]})"}]
+
+
 def build_review_set(key, p, g, f, flags, guess, acts):
     stamp = today().isoformat()
     sid = f"steer-{key}-{stamp}"
@@ -657,7 +664,7 @@ def build_review_set(key, p, g, f, flags, guess, acts):
              {"id": "decision", "kind": "choice", "title": "Keep, table or abandon",
               "question": f"What should happen to {p['name']} now?", "why": why,
               "one_pager": [{"type": "text", "text": "Findings:\n- " + "\n- ".join(flags or ["No kill criterion met."])},
-                            {"type": "text", "text": "Facts:\n- " + "\n- ".join(facts)}] + review_docs(g),
+                            {"type": "text", "text": "Facts:\n- " + "\n- ".join(facts)}] + review_docs(g) + waiting_doc(key),
               "options": [{"id": "keep", "label": "Keep going", "consequence": "Stays active; next actions below."},
                           {"id": "table", "label": "Table it", "consequence": "Parked with a revisit date and wake condition."},
                           {"id": "shelve", "label": "Table indefinitely", "consequence": "Parked with no date; it never wakes on its own, only when you reactivate it."},

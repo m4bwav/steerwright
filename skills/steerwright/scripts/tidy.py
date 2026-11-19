@@ -297,7 +297,10 @@ def scan(only=None):
         except Exception as e:  # each scanner fails soft
             notes.append("%s: %s" % (name, str(e)[:200]))
     counts = {v: sum(1 for i in items if i["verdict"] == v) for v in ("safe", "ask", "keep")}
-    return {"generated": sw.now_iso(), "dry_run": True, "counts": counts, "items": items, "notes": notes}
+    out = {"generated": sw.now_iso(), "dry_run": True, "counts": counts, "items": items, "notes": notes}
+    if not only:  # the weekly review reads this instead of a minute-long scan
+        sw.write_json(sw.home() / "tidy-summary.json", {"generated": out["generated"], "counts": counts})
+    return out
 
 
 # ---------- apply ----------

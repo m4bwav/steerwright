@@ -4,6 +4,11 @@ Every change to SKILL.md and its companions, newest first, each with the reason.
 
 Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261119-9 · 2026-11-19 · 0.10.0: inbox and tidy on the weekly review
+because: inbox chain step G (ai-docs/plans/inbox-design.md).
+files: scripts/inbox.py, scripts/tidy.py, scripts/sw.py, SKILL.md, tests/test_inbox.py, tests/test_tidy.py.
+Each review set's findings page gains a block with the project's waiting items, all projects' counts and aged items, and the last tidy dry run's counts. No new questions.
+
 ### C-20261119-8 · 2026-11-19 · 0.9.0: sw.py tidy --apply
 because: inbox chain step F (ai-docs/plans/inbox-design.md).
 files: scripts/tidy.py, scripts/sw.py, SKILL.md, tests/test_tidy.py.

@@ -145,6 +145,13 @@ class Tidy(unittest.TestCase):
         self.assertEqual(before, sorted(p.name for p in self.root.iterdir()))
         self.assertIn("merged-branch", git(self.repo, "branch"))
 
+    def test_full_scan_leaves_summary_for_review(self):
+        f = sw.home() / "tidy-summary.json"
+        tidy.scan(only=["worktrees"])
+        self.assertFalse(f.exists())  # a partial scan says nothing about the whole
+        out = tidy.scan()
+        self.assertEqual(sw.read_json(f, {})["counts"], out["counts"])
+
 
 if __name__ == "__main__":
     unittest.main()

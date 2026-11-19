@@ -18,6 +18,7 @@ from pathlib import Path
 import sw
 
 CACHE_SECONDS = 15 * 60
+AGED_DAYS = 14
 SIZE_MINUTES = {"S": 2, "M": 10, "L": 30}
 DEFAULT_BACKLOGS = [r"D:\m4bwa\Claude\Projects\Ai\plugin-backlog", r"D:\m4bwa\Claude\Projects\Ai\package-backlog",
                     r"D:\m4bwa\Claude\Projects\Ai\server-backlog"]
@@ -252,6 +253,37 @@ def collect(only=None, fresh=False):
     if not only:
         sw.write_json(cache, out)
     return out
+
+
+def review_summary(key, aged_days=None):
+    """Text block for a project's weekly review: its waiting items, all projects' counts, and the last tidy dry run.
+    Reads the inbox (cached) and the tidy summary file only; asks nothing new."""
+    aged_days = aged_days or config().get("inbox_aged_days") or AGED_DAYS
+    lines = []
+    try:
+        c = collect()
+    except Exception as e:  # the review never fails on the inbox
+        c = None
+        lines.append("Inbox unavailable: %s" % str(e)[:200])
+
+    def oldest(items):
+        return "; ".join("%s (%.0f d)" % (i["title"][:80], i["age_days"] or 0) for i in items[:3])
+
+    if c:
+        mine = [i for i in c["items"] if i.get("project") == key]
+        aged = [i for i in c["items"] if (i["age_days"] or 0) > aged_days]
+        lines.append("This project: %d waiting on you, about %d minutes%s" % (
+            len(mine), sum(i["minutes"] for i in mine), (". Oldest: " + oldest(mine)) if mine else ""))
+        lines.append("All projects: %d waiting, about %d minutes; %d older than %d days%s" % (
+            c["count"], c["minutes"], len(aged), aged_days, (". Oldest: " + oldest(c["items"])) if c["items"] else ""))
+    t = sw.read_json(sw.home() / "tidy-summary.json", None)
+    if t:
+        n = t.get("counts") or {}
+        lines.append("Leftovers (tidy dry run %s): %d safe to remove, %d need you, %d kept" % (
+            (t.get("generated") or "")[:10], n.get("safe", 0), n.get("ask", 0), n.get("keep", 0)))
+    else:
+        lines.append("Leftovers: no tidy dry run yet (sw.py tidy)")
+    return {"type": "text", "text": "Waiting on you and leftovers:\n- " + "\n- ".join(lines)}
 
 
 def cmd_inbox(a):
