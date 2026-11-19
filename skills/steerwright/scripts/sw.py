@@ -45,7 +45,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.8.0"
+VERSION = "0.8.1"
 STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -961,7 +961,15 @@ def sibling_module(name):
         me = types.ModuleType("sw")
         me.__dict__.update(globals())
     sys.modules.setdefault("sw", me)
+    want = Path(here, name + ".py")
+    old = sys.modules.get(name)
+    if old is not None and (Path(getattr(old, "__file__", "") or "").resolve() != want.resolve()
+                            or getattr(old, "_sw_mtime", want.stat().st_mtime) != want.stat().st_mtime):
+        del sys.modules[name]  # an upgrade moved the plugin folder, or the file changed: load the new one
+    sys.path.remove(here)
+    sys.path.insert(0, here)
     mod = importlib.import_module(name)
+    mod._sw_mtime = want.stat().st_mtime
     mod.sw = me  # after a reload of sw.py the sibling uses the new code
     return mod
 
