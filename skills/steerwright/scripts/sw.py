@@ -994,6 +994,24 @@ def sibling_module(name):
 ROOT_LINK = re.compile(r"""((?:href|src|action)=['"])/(?!/)""")
 
 
+SIB_FILES = set()  # resolved, lower-cased .html paths a served sibling page linked to; only these go out at /sib/file
+FILE_LINK = re.compile(r"""<a\s+([^>]*?)href=(["'])(file:///[^"']+)\2([^>]*)>(.*?)</a>""", re.I | re.S)
+
+
+def serve_file_links(doc):
+    """A page served over http may not link to file:/// (browsers block it). Point links to existing .html files at
+    /sib/file and turn every other file link (missing file, not a page) into plain text, so no dead link is offered."""
+    def fix(m):
+        raw = urllib.parse.unquote(urllib.parse.urlsplit(m.group(3)).path).lstrip("/")
+        f = Path(raw)
+        if f.suffix.lower() in (".html", ".htm") and f.is_file():
+            SIB_FILES.add(str(f.resolve()).lower())
+            href = "/sib/file?p=" + urllib.parse.quote(str(f.resolve()))
+            return f"<a {m.group(1)}href={m.group(2)}{href}{m.group(2)}{m.group(4)}>{m.group(5)}</a>"
+        return f"<span class='mute' title='not available'>{m.group(5)}</span>"
+    return FILE_LINK.sub(fix, doc)
+
+
 def render(path, query="", base=""):
     """One page as (status, body, content type). base is where the pages are mounted ("" at the root, "/steer"
     inside askwright's shared server); root links in the HTML are moved under it."""
@@ -1032,7 +1050,11 @@ def _render(path, query):
         if path in ("/sib/chainwright", "/sib/grindwright"):
             f = sib_home(path[5:]) / "index.html"
             if f.exists():
-                return 200, f.read_text(encoding="utf-8", errors="replace"), HTML
+                return 200, serve_file_links(f.read_text(encoding="utf-8", errors="replace")), HTML
+        if path == "/sib/file":
+            f = Path(q.get("p", [""])[0])
+            if str(f.resolve()).lower() in SIB_FILES and f.is_file():
+                return 200, serve_file_links(f.read_text(encoding="utf-8", errors="replace")), HTML
         return 404, page("not found", "<p>not found. <a href='/'>home</a></p>"), HTML
     except Exception as e:  # keep the server alive; show the error
         return 500, page("error", f"<pre>{esc(repr(e))}</pre>"), HTML
