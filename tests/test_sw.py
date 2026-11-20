@@ -2,6 +2,7 @@ import contextlib
 import io
 import json
 import os
+import urllib.parse
 import sys
 import tempfile
 import unittest
@@ -337,3 +338,19 @@ class OneServer(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SibFileLinks(unittest.TestCase):
+    def test_file_links_served_or_greyed(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            rep = Path(d, "r.html"); rep.write_text("<p>run</p>", encoding="utf-8")
+            doc = (f"<a href='{rep.as_uri()}'>report</a> <a href='{Path(d, 'gone.html').as_uri()}'>old</a>"
+                   f" <a href='{Path(d, 'x.jsonl').as_uri()}'>sess</a>")
+            out = sw.serve_file_links(doc)
+            self.assertNotIn("file:///", out)
+            self.assertIn("href='/sib/file?p=", out)
+            self.assertEqual(out.count("not available"), 2)
+            p = urllib.parse.quote(str(rep.resolve()))
+            self.assertEqual(sw.render("/sib/file", "p=" + p)[0], 200)
+            self.assertEqual(sw.render("/sib/file", "p=" + urllib.parse.quote(str(Path(d, "other.html"))))[0], 404)
