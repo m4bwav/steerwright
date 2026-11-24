@@ -469,13 +469,13 @@ def inbox_page(data, q):
                   else f"<code>{esc(where)}</code>") if where else ""
         age = "%.1f d" % i["age_days"] if i["age_days"] is not None else "?"
         return (f"<tr><td>{age}</td><td>{esc(i['title'])}<div class='mut'>{esc(i['source'])} &middot; {target}</div></td>"
-                f"<td>{esc(i['action'])}<div>{clear_controls(i, urls)}</div></td><td>{i['minutes']}</td></tr>")
+                f"<td>{esc(i['action'])}<div>{clear_controls(i, urls)}</div></td><td class='num'>{i['minutes']}</td></tr>")
 
     groups = {}
     for i in items:  # already oldest first; groups keep their oldest item first too
         groups.setdefault((i["project"] or "-", i["kind"]), []).append(i)
     order = sorted(groups, key=lambda g: -(groups[g][0]["age_days"] or 0))
-    head = "<tr><th>Age</th><th>What</th><th>Clears it</th><th>Min</th></tr>"
+    head = "<tr><th>Age</th><th>What</th><th>Clears it</th><th class='num'>Min</th></tr>"
     quick_items = [i for i in items if i["minutes"] <= QUICK_MINUTES]  # the lane follows the filters
     lane = ("" if quick or not quick_items else
             f"<h2>Clears in under {QUICK_MINUTES} minutes ({len(quick_items)})</h2><table>{head}"
@@ -500,5 +500,5 @@ def inbox_page(data, q):
             + lane
             + ("".join(f"<h2>{esc(names.get(p, 'no project' if p == '-' else p))} &middot; {esc(k)} ({len(groups[(p, k)])})</h2>"
                        f"<table>{head}" + "".join(row(i) for i in groups[(p, k)]) + "</table>" for p, k in order)
-               if items else "<p class='mut'>Nothing waiting on you here.</p>"))
+               if items else "<p class='mut'>Nothing waiting on you here. Clear a filter above or <a href='/inbox?fresh=1'>refresh</a> to check again.</p>"))
     return sw.page("waiting on you: steerwright", body)

@@ -3,6 +3,7 @@
 Status: in progress (session 14: idle until a review is due)
 
 ## Where things are
+- 2026-11-23: 0.12.0 adds the loading shell, table paging/sort/filter, relative dates and empty/error states to all pages (PR data-ui).
 - 2026-11-13: v0.5.0 released and installed; live, steerwright runs inside askwright's server at http://127.0.0.1:47631/steer/ (server.json hosted_by askwright). The old standalone server on 47630 is gone.
 - 2026-11-13: 0.5.0 serves its pages inside askwright's shared server (127.0.0.1:47631/steer/) when askwright is installed; otherwise its own server on 47630 or a free port. See the log.
 - Plugin folder: D:/m4bwa/Claude/Projects/Ai/steerwright, PUBLIC GitHub repo m4bwav/steerwright (since 2026-11-12; wiki live at 0.4.0, banner, social preview, Discussions) (main), v0.4.0 released, installed as steerwright@mark-local, listed in plugin-backlog existing-plugins.md.

@@ -2,7 +2,12 @@
 
 Every change to SKILL.md and its companions, newest first, each with the reason. Reasons cite findings in [RESEARCH.md](RESEARCH.md) (`R-`) and lessons in [LEARNINGS.md](LEARNINGS.md) (`L-`). State in `evergreen.json`. Protocol: MAINTENANCE.md.
 
-Entry shape: `### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
+Entry shape: `### C-20261123-1 · 2026-11-23 · 0.12.0: loading, paging and data UI on every page
+because: Mark 2026-11-23 asked for loading indicators, paging and data presentation best practices on all internal plugin pages.
+files: scripts/sw.py, scripts/inbox.py, tests/test_sw.py.
+While the first cache warm pass runs, page routes return a loading shell (spinner, skeleton, role=status, aria-busy, elapsed seconds) that fetches the page with full=1 and shows Retry plus server-down text on failure. One table helper sorts headers (aria-sort), adds a filter and 25-row paging with "showing X-Y of N" and the page in the URL hash, shows relative dates with the absolute date in the tooltip, and clips long cells with a more button. Sticky headers, right-aligned tabular numbers, visible focus, reduced motion, a generated-at stamp, an empty state on the projects table and a Retry on the error page.
+
+### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
 ### C-20261119-10 · 2026-11-19 · 0.11.0: inbox age and load metrics
 because: inbox chain step H (ai-docs/plans/inbox-design.md).

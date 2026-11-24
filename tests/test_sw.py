@@ -319,6 +319,54 @@ class OneServer(unittest.TestCase):
         self.assertEqual(sw.render("/nope", "", "/steer")[0], 404)
         self.assertIn('"steerwright"', sw.render("/ping")[1])
 
+    def test_loading_shell_while_cold_then_full_page(self):
+        sw.WARM.update(started=True, done=False)
+        try:
+            body = sw.render("/", "", "/steer")[1]
+            self.assertIn("aria-busy='true'", body)
+            self.assertIn("role='status'", body)
+            self.assertIn("full=1", body)          # the shell fetches the real page
+            self.assertIn("Retry", body)           # error state with retry
+            self.assertIn("sw.py up", body)        # server-down text
+            full = sw.render("/", "full=1", "/steer")[1]
+            self.assertNotIn("aria-busy='true'", full)
+            self.assertIn("<h2>Projects</h2>", full)
+            self.assertNotIn("aria-busy", sw.render("/ping")[1])
+        finally:
+            sw.WARM.update(started=False, done=False)
+
+    def test_empty_state_stamp_and_table_helper(self):
+        body = sw.render("/")[1]
+        self.assertIn("No live projects", body)
+        self.assertIn("sw.py discover", body)
+        self.assertIn("Generated ", body)
+        self.assertIn("aria-sort", body)            # sortable headers
+        self.assertIn("showing ", body)             # paging text
+        self.assertIn("var PAGE=25", body)
+        self.assertIn("prefers-reduced-motion", body)
+
+    def test_rows_get_dates_numbers_and_clips(self):
+        from datetime import datetime
+        data = sw.load()
+        for i in range(30):
+            data["projects"][f"p{i}"] = sw.new_project(f"P{i}", [self.td.name])
+        sw.save(data)
+        body = sw.render("/")[1]
+        self.assertEqual(body.count("<tr>") - 1, 30)  # all rows sent; the helper pages them client-side
+        self.assertIn("class='num'", body)
+        self.assertIn("class='clip'", body)
+        self.assertIn(sw.when(datetime(2026, 1, 2)), "<time datetime='2026-01-02'>2026-01-02</time>")
+
+    def test_error_page_has_retry(self):
+        orig = sw.main_page
+        sw.main_page = lambda *a, **k: 1 / 0
+        try:
+            code, body, _ = sw.render("/")
+        finally:
+            sw.main_page = orig
+        self.assertEqual(code, 500)
+        self.assertIn("Retry", body)
+
     def test_taken_port_falls_back_to_a_free_one(self):
         first = sw.bind(0)
         try:
