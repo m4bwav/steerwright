@@ -47,7 +47,7 @@ from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-VERSION = "0.11.0"
+VERSION = "0.12.0"
 STATUSES = ("active", "parked", "tabled", "abandoned", "done")
 KINDS = ("software", "game", "film", "art", "music", "writing", "engineering", "other")
 DEFAULT_PORT = 47630
@@ -345,14 +345,19 @@ def gather(p, fresh=False):
         return g
 
 
+WARM = {"started": False, "done": False}  # the loading shell shows while the first warm pass runs
+
+
 def warm_cache():
     """Fill and keep refreshing the gather cache so page loads stay fast."""
+    WARM["started"] = True
     while True:
         try:
             for p in load()["projects"].values():
                 gather(p)
         except Exception:
             pass
+        WARM["done"] = True
         time.sleep(CACHE_TTL - 30)
 
 
@@ -769,7 +774,70 @@ td,th{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertic
 .charts{display:flex;flex-wrap:wrap}pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);padding:10px;border-radius:8px;font-size:12px}
 .tabs{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 10px;border-bottom:1px solid var(--line)}.tabs a{padding:6px 12px;text-decoration:none;color:var(--mut);border-radius:6px 6px 0 0}.tabs a.on{background:var(--card);color:var(--fg);border:1px solid var(--line);border-bottom-color:var(--card);margin-bottom:-1px;font-weight:600}
 .mut{color:var(--mut)}@media (max-width:640px){td:nth-child(n+5),th:nth-child(n+5){display:none}}
+th{position:sticky;top:0;background:var(--card);z-index:1}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+th button{all:unset;cursor:pointer}th button:after{content:" ↕";opacity:.35}th[aria-sort=ascending] button:after{content:" ▲";opacity:1}
+th[aria-sort=descending] button:after{content:" ▼";opacity:1}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.tbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0;color:var(--mut);font-size:12px}
+.tbar input{font:inherit;padding:3px 7px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg)}
+.tbar button,.retry{font:inherit;padding:2px 9px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--blue);cursor:pointer}
+.tbar button:disabled{opacity:.4;cursor:default}
+.clip{max-width:34em}.clip>div{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.clip.open>div{display:block}
+.clip button{all:unset;color:var(--blue);cursor:pointer;font-size:12px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.sk{height:14px;background:var(--line);border-radius:4px;margin:10px 0;max-width:640px}
+.foot{margin-top:18px;font-size:12px}
 """
+
+# One helper for every table: sortable headers (aria-sort), filter box and paging when long, page in the URL hash,
+# relative dates (<time>, absolute in title), "more" on clipped cells. Plain JS, no libraries.
+UI_JS = r"""
+(function(){var PAGE=25;function rel(d){var s=(Date.now()-d)/1000,a=Math.abs(s),u=[[86400*365,'y'],[86400*30,'mo'],[86400*7,'w'],[86400,'d'],[3600,'h'],[60,'min']];
+for(var i=0;i<u.length;i++)if(a>=u[i][0]){var n=Math.round(a/u[i][0]);return s>0?n+' '+u[i][1]+' ago':'in '+n+' '+u[i][1];}return 'just now';}
+document.querySelectorAll('time[datetime]').forEach(function(t){var d=new Date(t.getAttribute('datetime'));if(isNaN(d))return;t.title=t.textContent;t.textContent=rel(d);});
+document.querySelectorAll('td.clip').forEach(function(td){var d=td.firstElementChild;if(!d||d.scrollHeight<=d.clientHeight+2)return;var b=document.createElement('button');
+b.type='button';b.textContent='more';b.setAttribute('aria-expanded','false');b.onclick=function(){var o=td.classList.toggle('open');b.textContent=o?'less':'more';b.setAttribute('aria-expanded',o);};td.appendChild(b);});
+function hash(){var h={};location.hash.slice(1).split('&').forEach(function(kv){var p=kv.split('=');if(p[0])h[p[0]]=decodeURIComponent(p[1]||'');});return h;}
+function sethash(k,v){var h=hash();if(v)h[k]=v;else delete h[k];var s=Object.keys(h).map(function(x){return x+'='+encodeURIComponent(h[x]);}).join('&');history.replaceState(null,'',s?'#'+s:location.pathname+location.search);}
+document.querySelectorAll('table').forEach(function(tb,ti){var rows=Array.prototype.slice.call(tb.rows);if(rows.length<3||!rows[0].querySelector('th'))return;
+var head=rows.shift(),id='t'+ti,page=parseInt(hash()[id+'p']||'1',10),q='',bar=null,inp,msg,bs;
+if(rows.length>PAGE){bar=document.createElement('div');bar.className='tbar';bar.innerHTML="<label>Filter <input type='search' placeholder='type to filter'></label><button type='button' data-d='-1'>Prev</button><span role='status' aria-live='polite'></span><button type='button' data-d='1'>Next</button>";
+tb.parentNode.insertBefore(bar,tb);inp=bar.querySelector('input');msg=bar.querySelector('span');bs=bar.querySelectorAll('button');
+inp.oninput=function(){q=inp.value.toLowerCase();page=1;draw();};bs.forEach(function(b){b.onclick=function(){page+=+b.getAttribute('data-d');draw();};});}
+function draw(){if(!bar)return;var shown=rows.filter(function(r){return !q||r.textContent.toLowerCase().indexOf(q)>=0;}),n=shown.length,pages=Math.max(1,Math.ceil(n/PAGE));
+page=Math.min(Math.max(1,page),pages);rows.forEach(function(r){r.hidden=true;});shown.slice((page-1)*PAGE,page*PAGE).forEach(function(r){r.hidden=false;});
+msg.textContent=n?'showing '+((page-1)*PAGE+1)+'-'+Math.min(n,page*PAGE)+' of '+n+(q?' (filtered from '+rows.length+')':''):'no rows match "'+q+'"; clear the filter';
+bs[0].disabled=page<=1;bs[1].disabled=page>=pages;sethash(id+'p',page>1?String(page):'');}
+Array.prototype.forEach.call(head.cells,function(th,ci){var b=document.createElement('button');b.type='button';while(th.firstChild)b.appendChild(th.firstChild);th.appendChild(b);
+b.onclick=function(){var dir=th.getAttribute('aria-sort')==='ascending'?'descending':'ascending';Array.prototype.forEach.call(head.cells,function(h){h.removeAttribute('aria-sort');});th.setAttribute('aria-sort',dir);
+function key(r){var c=r.cells[ci];if(!c)return '';var t=c.querySelector('time');var v=t?t.getAttribute('datetime'):c.textContent.trim();var f=parseFloat(v);return (isNaN(f)||/^[0-9]{4}-/.test(v))?v.toLowerCase():f;}
+rows.sort(function(a,b){var x=key(a),y=key(b);var r=(typeof x==typeof y)?(x<y?-1:x>y?1:0):(typeof x=='number'?-1:1);return dir==='ascending'?r:-r;});
+var body=rows[0].parentNode;rows.forEach(function(r){body.appendChild(r);});draw();};});draw();});})();
+"""
+
+# Shown while the first warm pass runs (a cold start can take ~16 s): fetch the real page and swap it in, Retry on failure.
+SHELL_JS = r"""
+(function(){var t0=Date.now(),m=document.getElementById('lm'),st=document.getElementById('ld');var tick=setInterval(function(){m.textContent='Reading project folders, git and sibling plugins ('+Math.round((Date.now()-t0)/1000)+' s). The first load after a restart can take about 20 s.';},1000);
+function go(){st.setAttribute('aria-busy','true');document.getElementById('le').hidden=true;var u=location.pathname+location.search+(location.search?'&':'?')+'full=1';
+fetch(u).then(function(r){if(!r.ok&&r.status!==404)throw new Error('HTTP '+r.status);return r.text();}).then(function(h){clearInterval(tick);document.open();document.write(h);document.close();})
+.catch(function(e){st.setAttribute('aria-busy','false');var x=document.getElementById('le');x.hidden=false;x.querySelector('span').textContent='steerwright did not answer ('+e.message+'). The server may be down: run sw.py up, then Retry.';});}
+document.getElementById('lr').onclick=function(){t0=Date.now();go();};go();})();
+"""
+
+
+def shell_page(title):
+    body = ("<div class='top'><h1>steerwright</h1></div><div id='ld' role='status' aria-busy='true' aria-live='polite'>"
+            "<p><span class='spin' aria-hidden='true'></span><span id='lm'>Loading...</span></p>"
+            "<div class='sk'></div><div class='sk' style='max-width:520px'></div><div class='sk' style='max-width:580px'></div></div>"
+            "<div id='le' class='warn' role='alert' hidden><span></span> <button type='button' class='retry' id='lr'>Retry</button></div>"
+            f"<script>{SHELL_JS}</script>")
+    return page(title, body, stamp=False)
+
+
+def when(d):
+    """A date cell: relative in the page, absolute in the tooltip (the helper rewrites it)."""
+    return f"<time datetime='{d:%Y-%m-%d}'>{d:%Y-%m-%d}</time>" if d else "-"
 
 
 def esc(x):
@@ -782,10 +850,12 @@ FAVICON = ("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle 
            "<circle cx='32' cy='32' r='5' fill='#fff'/></svg>")  # a ship's wheel
 
 
-def page(title, body):
-    return (f"<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
+def page(title, body, stamp=True):
+    foot = (f"<p class='mut foot'>Generated {datetime.now():%Y-%m-%d %H:%M:%S} by steerwright {VERSION}.</p><script>{UI_JS}</script>"
+            if stamp else "")
+    return (f"<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
             f"<link rel='icon' type='image/svg+xml' href='/favicon.svg'>"
-            f"<title>{esc(title)}</title><style>{CSS}</style></head><body>{body}</body></html>")
+            f"<title>{esc(title)}</title><style>{CSS}</style></head><body>{body}{foot}</body></html>")
 
 
 def traffic_file():
@@ -831,9 +901,8 @@ def parking_page(data, lot=None):
     rows = []
     for k, p in sorted((kp for kp in parked if (kp[1].get("lot") or "Other") == lot), key=lambda kp: kp[1]["name"].lower()):
         g = gather(p)
-        last = f"{g['last']:%Y-%m-%d}" if g["last"] else "-"
-        rows.append(f"<tr><td><a href='/p/{k}'>{esc(p['name'])}</a><div class='mut'>{esc(p.get('kind'))}</div></td><td>{last}</td>"
-                    f"<td>{esc(p.get('note') or p.get('goal') or '')}</td><td class='mut'>{esc('; '.join(p.get('paths', [])))}</td>"
+        rows.append(f"<tr><td><a href='/p/{k}'>{esc(p['name'])}</a><div class='mut'>{esc(p.get('kind'))}</div></td><td>{when(g['last'])}</td>"
+                    f"<td class='clip'><div>{esc(p.get('note') or p.get('goal') or '')}</div></td><td class='mut'>{esc('; '.join(p.get('paths', [])))}</td>"
                     f"<td><code>sw.py activate {esc(k)}</code></td></tr>")
     body = (f"<div class='top'><h1>steerwright</h1><span>{today()}</span><span>{sibling_links()}</span></div>" + tabs("parking", data)
             + "<p class='mut'>Work that reached a good-enough cut. Not counted against the WIP limit. Pick one to improve and activate it.</p>"
@@ -872,11 +941,11 @@ def main_page(data, show_all=False):
                          + (f" ({g['asks_open']} asks)" if g["asks_open"] else ""))
         rows.append(f"<tr><td><span class='dot {h}'></span><a href='/p/{k}'>{esc(p['name'])}</a><div class='mut'>{esc(p.get('kind'))}</div></td>"
                     f"<td>{esc(p.get('status'))}<div class='mut'>{esc(why)}</div></td>"
-                    f"<td>{g['last']:%Y-%m-%d}</td>" if g["last"] else
+                    f"<td>{when(g['last'])}</td>" if g["last"] else
                     f"<tr><td><span class='dot {h}'></span><a href='/p/{k}'>{esc(p['name'])}</a><div class='mut'>{esc(p.get('kind'))}</div></td>"
                     f"<td>{esc(p.get('status'))}<div class='mut'>{esc(why)}</div></td><td>-</td>")
-        rows[-1] += (f"<td>{g['asks_open'] or ''}</td><td>{running or ''}</td>"
-                     f"<td>{esc(', '.join(f'{s} {n}' for s, n in sorted(gl.items())))}</td><td>{esc(acts[0] if acts else '')}</td></tr>")
+        rows[-1] += (f"<td class='num'>{g['asks_open'] or ''}</td><td class='num'>{running or ''}</td>"
+                     f"<td>{esc(', '.join(f'{s} {n}' for s, n in sorted(gl.items())))}</td><td class='clip'><div>{esc(acts[0] if acts else '')}</div></td></tr>")
     body = (f"<div class='top'><h1>steerwright</h1><span>{today()}</span><span>{sibling_links()}</span></div>"
             + "".join(f"<div class='warn'>{esc(w)}</div>" for w in warns)
             + tabs("projects", data)
@@ -884,8 +953,10 @@ def main_page(data, show_all=False):
                 ((s, sum(1 for _, p in projects if p.get('status') == s)) for s in STATUSES))
             + f"<div class='tile'><b>{data['wip_limit']}</b><span>WIP limit</span></div></div>"
             + f"<h2>Current work</h2><div class='strip'>{' · '.join(strip) or '<span class=mut>nothing moving in the last 2 days</span>'}</div>"
-            + "<h2>Projects</h2><table><tr><th>Project</th><th>Status</th><th>Last activity</th><th>Open asks</th><th>Chains running</th><th>Grind items</th><th>Next action</th></tr>"
-            + "".join(rows) + "</table>"
+            + ("<h2>Projects</h2><table><tr><th>Project</th><th>Status</th><th>Last activity</th><th class='num'>Open asks</th><th class='num'>Chains running</th><th>Grind items</th><th>Next action</th></tr>"
+               + "".join(rows) + "</table>" if rows else
+               "<h2>Projects</h2><p class='mut'>No live projects. Find them with <code>sw.py discover</code> or add one with <code>sw.py add NAME PATH</code>"
+               + (", or show the hidden ones below." if hidden else ".") + "</p>")
             + ((f"<details><summary>{len(hidden)} tabled, done or abandoned (hidden) · <a href='/?all=1'>show all</a></summary>"
                 f"<p>{' · '.join(hidden)}</p></details>") if hidden else ("<p><a href='/'>hide tabled, done and abandoned</a></p>" if show_all else ""))
             + "<p class='mut'>Read-only view. Change state with sw.py (review, table, abandon, done).</p>")
@@ -1015,7 +1086,11 @@ def serve_file_links(doc):
 def render(path, query="", base=""):
     """One page as (status, body, content type). base is where the pages are mounted ("" at the root, "/steer"
     inside askwright's shared server); root links in the HTML are moved under it."""
-    code, body, ctype = _render(path, query)
+    if (WARM["started"] and not WARM["done"] and "full=1" not in query.split("&")
+            and (path in ("/", "/parking", "/inbox") or path.startswith("/p/"))):
+        code, body, ctype = 200, shell_page("steerwright (loading)"), HTML
+    else:
+        code, body, ctype = _render(path, query)
     if base and ctype.startswith("text/html"):
         body = ROOT_LINK.sub(lambda m: m.group(1) + base + "/", body)
     return code, body, ctype
@@ -1057,7 +1132,8 @@ def _render(path, query):
                 return 200, serve_file_links(f.read_text(encoding="utf-8", errors="replace")), HTML
         return 404, page("not found", "<p>not found. <a href='/'>home</a></p>"), HTML
     except Exception as e:  # keep the server alive; show the error
-        return 500, page("error", f"<pre>{esc(repr(e))}</pre>"), HTML
+        return 500, page("error", "<div class='warn' role='alert'>This page failed to build. <a href='' class='retry'>Retry</a>"
+                         f" &middot; <a href='/'>home</a></div><pre>{esc(repr(e))}</pre>"), HTML
 
 
 HTML = "text/html; charset=utf-8"
