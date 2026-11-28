@@ -9,6 +9,11 @@ While the first cache warm pass runs, page routes return a loading shell (spinne
 
 ### C-YYYYMMDD-n · date · one-line summary`, then `because:`, `files:`, and a sentence on what changed.
 
+### C-20261127-1 · 2026-11-27 · 0.12.1: read the per-event log
+because: everlast 0.8.0 split ai-docs/log.md into ai-docs/log/, one file per event, so open PRs stop conflicting on the log.
+files: scripts/sw.py, AGENTS.md.
+Activity dates now also come from each event file in ai-docs/log/, and the cache fingerprint watches that folder.
+
 ### C-20261119-10 · 2026-11-19 · 0.11.0: inbox age and load metrics
 because: inbox chain step H (ai-docs/plans/inbox-design.md).
 files: scripts/inbox.py, scripts/sw.py, SKILL.md, tests/test_inbox.py.
