@@ -297,7 +297,9 @@ def git_dates(path, weeks=26):
 
 def log_dates(path):
     out = []
-    for f in (Path(path, "ai-docs", "log.md"), Path(path, "log.md")):
+    log_dir = Path(path, "ai-docs", "log")
+    events = sorted(log_dir.glob("*.md")) if log_dir.is_dir() else []
+    for f in (Path(path, "ai-docs", "log.md"), Path(path, "log.md"), *events):
         try:
             text = f.read_text(encoding="utf-8", errors="replace")
         except OSError:
@@ -316,7 +318,7 @@ def _stamp(p):
     """Cheap fingerprint of a project's sources: mtimes of its paths' ai-docs, .git and the sibling homes."""
     parts = []
     for x in p.get("paths", []):
-        for sub in ("", "ai-docs", "ai-docs/log.md", "ai-docs/HANDOFF.md", ".git/HEAD", ".git/index", ".git/refs/heads"):
+        for sub in ("", "ai-docs", "ai-docs/log", "ai-docs/log.md", "ai-docs/HANDOFF.md", ".git/HEAD", ".git/index", ".git/refs/heads"):
             q = Path(x, sub)
             try:
                 parts.append(q.stat().st_mtime_ns)

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-steerwright: one skill, `skills/steerwright/`. `scripts/sw.py` is the whole tool (registry, discover, pages, reviews, up/down). Design: `ai-docs/plans/2026-11-09-design.md`. State: `ai-docs/HANDOFF.md`, log `ai-docs/log.md`.
+steerwright: one skill, `skills/steerwright/`. `scripts/sw.py` is the whole tool (registry, discover, pages, reviews, up/down). Design: `ai-docs/plans/2026-11-09-design.md`. State: `ai-docs/HANDOFF.md`, log `ai-docs/log/` (one file per event, `everlast.py log`).
 
 - Public repo (since 2026-11-12). No hosted CI; run the tests locally: `python -m unittest discover -s tests`.
 - Scripts: standard library only, Python 3.9+, UTF-8, LF. Every change gets a test. Tests use scratch homes (`STEERWRIGHT_HOME`, `ASKWRIGHT_HOME`, `CHAINWRIGHT_HOME`, `GRINDWRIGHT_HOME`), never the real ones.
